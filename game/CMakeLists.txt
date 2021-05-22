@@ -10,6 +10,7 @@ endif()
 
 set(SOURCES
   src/main.cpp
+  src/Map.cpp
 )
 
 add_executable(${PNAME} ${SOURCES})
@@ -17,7 +18,7 @@ add_custom_command(TARGET ${PNAME}
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PNAME}> ${RUNTIME_DIR})
 
-target_compile_features(${PNAME} PRIVATE cxx_std_17)
+target_compile_features(${PNAME} PRIVATE cxx_std_14)
 linkgorgon(${PNAME})
 
 if(MSVC)
@@ -30,10 +31,7 @@ if(MSVC)
 else()
   set(COMPILER_OPTIONS
     -Wall
-    -Wextra
     #-Werror
-    -Wshadow
-    -Wpedantic
     #-pedantic-errors
     #-O2
     -ggdb
