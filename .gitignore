@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# GGE and Build Artifacts
+gge/
+build/
+bin/game_jam_2021
+
+# Emacs/Language Servers
+compile_commands.json
+*~
+*\#*

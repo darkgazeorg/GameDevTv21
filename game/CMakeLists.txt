@@ -1,0 +1,56 @@
+cmake_minimum_required(VERSION 3.0)
+
+project(${PNAME})
+
+message(${PNAME})
+message(${RUNTIME_DIR})
+message(${GGE_DIR})
+
+if(DEFINED GGE_IN_SOURCE_BUILD)
+  message(${GGE_INSTALL_PREFIX})
+  find_package(Gorgon 4.0.0 REQUIRED PATHS ${GGE_INSTALL_PREFIX} NO_DEFAULT_PATH)
+else()
+  find_package(Gorgon 4.0.0 REQUIRED)
+endif()
+
+set(SOURCES
+  src/main.cpp
+)
+
+add_executable(${PNAME} ${SOURCES})
+add_custom_command(TARGET ${PNAME}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PNAME}> ${RUNTIME_DIR})
+
+target_include_directories(${PNAME} PRIVATE ${GGE_DIR}/Source)
+target_compile_features(${PNAME} PRIVATE cxx_std_17)
+linkgorgon(${PNAME})
+
+if(MSVC)
+  set(COMPILER_OPTIONS
+    /Zi
+    /permissive-
+    /WX
+    /W4
+  )
+else()
+  set(COMPILER_OPTIONS
+    -Wall
+    -Wextra
+    #-Werror
+    -Wshadow
+    -Wpedantic
+    #-pedantic-errors
+    #-O2
+    -ggdb
+    -g3
+    #-fsanitize=address
+  )
+  set(LIBRARIES
+    #asan
+  )
+endif()
+
+target_compile_options(${PNAME} PRIVATE ${COMPILER_OPTIONS})
+
+target_link_libraries(${PNAME} ${LIBRARIES})
