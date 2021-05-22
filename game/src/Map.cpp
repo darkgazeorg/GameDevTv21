@@ -1,12 +1,123 @@
 #include "Map.h"
 #include <Gorgon/Geometry/PointList.h>
 
+#include <cstdint>
+#include <cstdlib>
+#include <cassert>
+
 Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tileproviders;
 Gorgon::Containers::Collection<Gorgon::Graphics::RectangularAnimation> tiles;
 
-Gorgon::Geometry::PointList<Point> points = {
-    {2, 4}, {2, 10}, {15, 10}, {15, 5}, {18, 5}, {18, 18}
-};
+namespace {
+    enum class Direction {
+        North,
+        South,
+        East,
+        West,
+    };
+
+    int Get1DCoordinate(Point coordinate, int width) {
+        return coordinate.Y * width + coordinate.X;
+    }
+
+    Point GetNeighborTowards(Point coordinate, Direction dir) {
+        switch(dir) {
+        case Direction::East:
+            return {coordinate.X + 1, coordinate.Y};
+            break;
+        case Direction::West:
+            return {coordinate.X - 1, coordinate.Y};
+            break;
+        case Direction::South:
+            return {coordinate.X, coordinate.Y + 1};
+            break;
+        case Direction::North:
+            return {coordinate.X, coordinate.Y - 1};
+            break;
+        default:
+            assert(false);
+        }
+
+        return {};
+    }
+
+    bool CheckDirection(Point coordinate, Direction dir, int width, int height) {
+        switch(dir) {
+        case Direction::East:
+            return coordinate.X < width - 1;
+            break;
+        case Direction::West:
+            return coordinate.X > 0;
+            break;
+        case Direction::South:
+            return coordinate.Y < height - 1;
+            break;
+        case Direction::North:
+            return coordinate.Y > 0;
+            break;
+        default:
+            assert(false);
+        }
+
+        return false;
+    }
+
+    std::vector<Point> FindUnvisitedNeighbors(const std::vector<int>& visited, Point current, int width, int height) {
+        std::vector<Point> unvisited;
+        std::vector<std::pair<bool, Point>> neighbors = {
+            {CheckDirection(current, Direction::West, width, height), GetNeighborTowards(current, Direction::West)},
+            {CheckDirection(current, Direction::North, width, height), GetNeighborTowards(current, Direction::North)},
+            {CheckDirection(current, Direction::East, width, height), GetNeighborTowards(current, Direction::East)},
+            {CheckDirection(current, Direction::South, width, height), GetNeighborTowards(current, Direction::South)}
+        };
+        for(const auto& neighbor : neighbors) {
+            auto withinbounds = neighbor.first;
+            auto coordinates = neighbor.second;
+            if(withinbounds && !visited[Get1DCoordinate(coordinates, width)]) {
+                unvisited.push_back(neighbor.second);
+            }
+        }
+        return unvisited;
+    }
+
+    void RemoveWall(std::vector<std::pair<Point, Direction>>& map, Point current, Point neighbor, int width)
+    {
+        Direction dir = Direction::North;
+        if(current.X != neighbor.X) {
+            assert(current.Y == neighbor.Y);
+            dir = Gorgon::Sign(neighbor.X - current.X) > 0 ? Direction::East : Direction::West;
+        }
+        else {
+            assert(current.X == neighbor.X);
+            dir = Gorgon::Sign(neighbor.Y - current.Y) > 0 ? Direction::South : Direction::North;
+        }
+        map.push_back({current, dir});
+    }
+
+    std::vector<std::pair<Point, Direction>> RecursiveBacktracker(int width, int height) {
+        std::vector<std::pair<Point, Direction>> map;
+        std::vector<int> visited(width * height, 0);
+        std::vector<Point> tmp;
+        int startx = std::rand() % width;
+        int starty = std::rand() % height;
+        tmp.push_back({startx, starty});
+        visited[Get1DCoordinate({startx, starty}, width)] = 1;
+        while(!tmp.empty()) {
+            auto curr = tmp.back();
+            tmp.pop_back();
+            auto unvisited = FindUnvisitedNeighbors(visited, curr, width, height);
+            if(unvisited.size() > 0) {
+                tmp.push_back(curr);
+                auto neighbor = unvisited[std::rand() % unvisited.size()];
+                assert(neighbor.X >= 0 && neighbor.X < width && neighbor.Y >= 0 && neighbor.Y < height);
+                RemoveWall(map, curr, neighbor, width);
+                visited[Get1DCoordinate(neighbor, width)] = 1;
+                tmp.push_back(neighbor);
+            }
+        }
+        return map;
+    }
+}
 
 Map::Map() {
     if(tileproviders.GetSize() == 0) {
@@ -33,26 +144,13 @@ Map::Map() {
     }
     
     mapsize = {20, 20};
-    std::fill_n(std::back_inserter(map), 400, 0);
-    
-    Point cur = points[0];
-    for(int i=1; i<points.GetSize(); i++) {
-        if(cur.X != points[i].X) {
-            int dir = Gorgon::Sign(points[i].X - cur.X);
-            for(int x=cur.X; x!=points[i].X; x+=dir) {
-                Set(x, cur.Y, 1);
-                Set(x, cur.Y+1, 2);
-                Set(x, cur.Y-1, 3);
-            }
-        }
-        else {
-            int dir = Gorgon::Sign(points[i].Y - cur.Y);
-            for(int y=cur.Y; y!=points[i].Y; y+=dir) {
-                Set(cur.X, y, 1);
-            }
-        }
-        
-        cur = points[i];
+    std::fill_n(std::back_inserter(map), 400, 1);
+
+    auto maze = RecursiveBacktracker(10, 10);
+
+    for(const auto& cell : maze) {
+        map[Get1DCoordinate(cell.first*2, mapsize.Width)] = 0;
+        map[Get1DCoordinate(GetNeighborTowards(cell.first*2, cell.second), mapsize.Width)] = 0;
     }
 }
 
