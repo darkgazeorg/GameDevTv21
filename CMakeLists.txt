@@ -32,16 +32,11 @@ if(DEFINED FETCH_GGE)
   )
 endif()
 
-if(NOT DEFINED FETCH_GGE AND NOT DEFINED GGE_DIR)
-  message(FATAL_ERROR "Gorgon Game Engine include directory must be supplied")
-endif()
-
 set(GAME_DIR ${CMAKE_SOURCE_DIR}/game)
 set(GAME_CMAKE_ARGS
   ${GAME_CMAKE_ARGS}
   -D RUNTIME_DIR=${CMAKE_SOURCE_DIR}/bin
   -D PNAME=${PNAME}
-  -D GGE_DIR=${GGE_DIR}
 )
 ExternalProject_Add(game
   PREFIX "game"

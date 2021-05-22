@@ -17,7 +17,6 @@ add_custom_command(TARGET ${PNAME}
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PNAME}> ${RUNTIME_DIR})
 
-target_include_directories(${PNAME} PRIVATE ${GGE_DIR}/Source)
 target_compile_features(${PNAME} PRIVATE cxx_std_17)
 linkgorgon(${PNAME})
 
