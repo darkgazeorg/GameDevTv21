@@ -2,12 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(${PNAME})
 
-message(${PNAME})
-message(${RUNTIME_DIR})
-message(${GGE_DIR})
-
 if(DEFINED GGE_IN_SOURCE_BUILD)
-  message(${GGE_INSTALL_PREFIX})
   find_package(Gorgon 4.0.0 REQUIRED PATHS ${GGE_INSTALL_PREFIX} NO_DEFAULT_PATH)
 else()
   find_package(Gorgon 4.0.0 REQUIRED)
