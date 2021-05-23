@@ -50,5 +50,6 @@ public:
 protected:
     std::vector<int> map;
     Size mapsize;
-    Size tilesize = {32, 32};
+    Size tilesize = {48, 48};
+    Size gridsize = {1, 1};
 };
