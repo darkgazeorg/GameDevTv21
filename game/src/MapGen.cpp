@@ -1,114 +1,111 @@
 #include "MapGen.h"
-#include <Gorgon/Utils/Assert.h>
 
-namespace {
-    enum class Direction {
-        North,
-        South,
-        East,
-        West,
+#include <functional>
+
+Point RecursiveBacktracker::getneighbortowards(Point coord, Direction dir) {
+    const std::unordered_map<Direction, std::function<Point()>> fns = {
+        {Direction::East, [coord] {return Point(coord.X + 1, coord.Y);}},
+        {Direction::West, [coord] {return Point(coord.X - 1, coord.Y);}},
+        {Direction::South, [coord] {return Point(coord.X, coord.Y + 1);}},
+        {Direction::North, [coord] {return Point(coord.X, coord.Y - 1);}}
     };
-
-    int Get1DCoordinate(Point coordinate, int width) {
-        return coordinate.Y * width + coordinate.X;
-    }
-
-    Point GetNeighborTowards(Point coordinate, Direction dir) {
-        switch(dir) {
-        case Direction::East:
-            return {coordinate.X + 1, coordinate.Y};
-            break;
-        case Direction::West:
-            return {coordinate.X - 1, coordinate.Y};
-            break;
-        case Direction::South:
-            return {coordinate.X, coordinate.Y + 1};
-            break;
-        case Direction::North:
-            return {coordinate.X, coordinate.Y - 1};
-            break;
-        default:
-            Gorgon::Utils::ASSERT_FALSE("Unknown direction");
-        }
-
-        return {};
-    }
-
-    bool CheckDirection(Point coordinate, Direction dir, int width, int height) {
-        switch(dir) {
-        case Direction::East:
-            return coordinate.X < width - 1;
-            break;
-        case Direction::West:
-            return coordinate.X > 0;
-            break;
-        case Direction::South:
-            return coordinate.Y < height - 1;
-            break;
-        case Direction::North:
-            return coordinate.Y > 0;
-            break;
-        default:
-            Gorgon::Utils::ASSERT_FALSE("Unknown direction");
-        }
-
-        return false;
-    }
-
-    std::vector<Point> FindUnvisitedNeighbors(const std::vector<int>& visited, Point current, int width, int height) {
-        std::vector<Point> unvisited;
-        std::vector<std::pair<bool, Point>> neighbors = {
-            {CheckDirection(current, Direction::West, width, height), GetNeighborTowards(current, Direction::West)},
-            {CheckDirection(current, Direction::North, width, height), GetNeighborTowards(current, Direction::North)},
-            {CheckDirection(current, Direction::East, width, height), GetNeighborTowards(current, Direction::East)},
-            {CheckDirection(current, Direction::South, width, height), GetNeighborTowards(current, Direction::South)}
-        };
-        for(const auto& neighbor : neighbors) {
-            auto withinbounds = neighbor.first;
-            auto coordinates = neighbor.second;
-            if(withinbounds && !visited[Get1DCoordinate(coordinates, width)]) {
-                unvisited.push_back(neighbor.second);
-            }
-        }
-        return unvisited;
-    }
-
-    void RemoveWall(std::vector<std::pair<Point, Direction>>& map, Point current, Point neighbor, int width)
-    {
-        Direction dir = Direction::North;
-        if(current.X != neighbor.X) {
-            assert(current.Y == neighbor.Y);
-            dir = Gorgon::Sign(neighbor.X - current.X) > 0 ? Direction::East : Direction::West;
-        }
-        else {
-            assert(current.X == neighbor.X);
-            dir = Gorgon::Sign(neighbor.Y - current.Y) > 0 ? Direction::South : Direction::North;
-        }
-        map.push_back({current, dir});
-    }
-
-    std::vector<std::pair<Point, Direction>> RecursiveBacktracker(int width, int height) {
-        std::vector<std::pair<Point, Direction>> map;
-        std::vector<int> visited(width * height, 0);
-        std::vector<Point> tmp;
-        int startx = std::rand() % width;
-        int starty = std::rand() % height;
-        tmp.push_back({startx, starty});
-        visited[Get1DCoordinate({startx, starty}, width)] = 1;
-        while(!tmp.empty()) {
-            auto curr = tmp.back();
-            tmp.pop_back();
-            auto unvisited = FindUnvisitedNeighbors(visited, curr, width, height);
-            if(unvisited.size() > 0) {
-                tmp.push_back(curr);
-                auto neighbor = unvisited[std::rand() % unvisited.size()];
-                assert(neighbor.X >= 0 && neighbor.X < width && neighbor.Y >= 0 && neighbor.Y < height);
-                RemoveWall(map, curr, neighbor, width);
-                visited[Get1DCoordinate(neighbor, width)] = 1;
-                tmp.push_back(neighbor);
-            }
-        }
-        return map;
-    }
+    return RecursiveBacktracker::executeperdir(dir, fns);
 }
 
+bool RecursiveBacktracker::checkbounds(Point coord, Direction dir) const {
+    const std::unordered_map<Direction, std::function<bool()>> fns = {
+        {Direction::East, [coord, right = bounds.Right] {return coord.X < right;}},
+        {Direction::West, [coord, left = bounds.Left] {return coord.X > left;}},
+        {Direction::South, [coord, bottom = bounds.Bottom] {return coord.Y < bottom;}},
+        {Direction::North, [coord, top = bounds.Top] {return coord.Y > top;}}
+    };
+    return RecursiveBacktracker::executeperdir(dir, fns);
+}
+
+std::vector<Point> RecursiveBacktracker::findunvisitedneighbors(Point current) const {
+    std::vector<Point> unvisited;
+    std::vector<std::pair<bool, Point>> neighbors = {
+        {checkbounds(current, Direction::West), getneighbortowards(current, Direction::West)},
+        {checkbounds(current, Direction::North), getneighbortowards(current, Direction::North)},
+        {checkbounds(current, Direction::East), getneighbortowards(current, Direction::East)},
+        {checkbounds(current, Direction::South), getneighbortowards(current, Direction::South)}
+    };
+    for(const auto& neighbor : neighbors) {
+        bool withinbounds = neighbor.first;
+        Point coord = neighbor.second;
+        if(withinbounds && !visitedcells.at(in1d(coord))) {
+            unvisited.push_back(neighbor.second);
+        }
+    }
+    return unvisited;
+}
+
+void RecursiveBacktracker::removewall(Point current, Point neighbor)
+{
+    Direction dir = Direction::North;
+    if(current.X != neighbor.X) {
+        ASSERT(current.Y == neighbor.Y, "expected change only in X");
+        dir = Gorgon::Sign(neighbor.X - current.X) > 0 ? Direction::East : Direction::West;
+    }
+    else {
+        ASSERT(current.X == neighbor.X, "expected change only in Y");
+        dir = Gorgon::Sign(neighbor.Y - current.Y) > 0 ? Direction::South : Direction::North;
+    }
+    carveinstr.push_back({current, dir});
+}
+
+void RecursiveBacktracker::addenteranceandexit() {
+    static const std::unordered_map<Direction, Direction> endedges = {
+        {Direction::East, Direction::West},
+        {Direction::West, Direction::East},
+        {Direction::North, Direction::South},
+        {Direction::South, Direction::North}
+    };
+    Direction startedge = (Direction)(std::rand() % 4);
+    Direction endedge = endedges.at(startedge);
+
+    std::unordered_map<Direction, std::function<Point()>> coordgenerators = {
+        {Direction::East, [end = size.Width - 1, height = size.Height] {return Point(end, std::rand() % height);}},
+        {Direction::West, [height = size.Height] {return Point(0, std::rand() % height);}},
+        {Direction::South, [end = size.Height - 1, width = size.Width] {return Point(std::rand() % width, end);}},
+        {Direction::North, [width = size.Width] {return Point(std::rand() % width, 0);}}
+    };
+    Point start = executeperdir(startedge, coordgenerators);
+    Point end = executeperdir(endedge, coordgenerators);
+
+    std::unordered_map<Direction, std::function<void*(Point coord)>> carver = {
+        {Direction::East, [&] (Point coord) {removewall(coord, getneighbortowards(coord, Direction::West)); return nullptr;}},
+        {Direction::West, [&] (Point coord) {removewall(coord, getneighbortowards(coord, Direction::East)); return nullptr;}},
+        {Direction::South, [&] (Point coord) {removewall(coord, getneighbortowards(coord, Direction::North)); return nullptr;}},
+        {Direction::North, [&] (Point coord) {removewall(coord, getneighbortowards(coord, Direction::South)); return nullptr;}}
+    };
+
+    executeperdir(startedge, carver, start);
+    executeperdir(endedge, carver, end);
+}
+
+RecursiveBacktracker::CarveInstructions RecursiveBacktracker::Generate() {
+    std::vector<Point> cells;
+    Point start((std::rand() % bounds.Right) + 1, (std::rand() % bounds.Bottom) + 1);
+    cells.push_back(start);
+    markvisited(start);
+    while(!cells.empty()) {
+        Point curr = cells.back();
+        cells.pop_back();
+        std::vector<Point> unvisitedneighbors = findunvisitedneighbors(curr);
+        std::size_t numofneighbors = unvisitedneighbors.size();
+        if(numofneighbors > 0) {
+            cells.push_back(curr);
+            Point neighbor = unvisitedneighbors[std::rand() % numofneighbors];
+            ASSERT(
+                neighbor.X >= bounds.Left && neighbor.X <= bounds.Right &&
+                neighbor.Y >= bounds.Top  && neighbor.Y <= bounds.Bottom,
+                "neighbor out of bounds");
+            removewall(curr, neighbor);
+            markvisited(neighbor);
+            cells.push_back(neighbor);
+        }
+    }
+    addenteranceandexit();
+    return carveinstr;
+}
