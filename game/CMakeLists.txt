@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(${PNAME})
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(DEFINED GGE_IN_SOURCE_BUILD)
   find_package(Gorgon 4.0.0 REQUIRED PATHS ${GGE_INSTALL_PREFIX} NO_DEFAULT_PATH)
 else()
