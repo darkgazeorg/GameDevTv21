@@ -1,0 +1,38 @@
+The layout of resources in the assets are as follows
+
+Enemies:
+Text file contains integer values that correlate to the following values
+
+- Enemy type (2=mechanical, 1=infantry, 4=flyer, 8=alien)
+- Speed float
+- Hit points int
+- Armor int
+- Armor reactive (exposive) int
+- Armor shield (laser) int
+- evasion float
+- scraps int
+- strength int
+
+
+Towers:
+Text file contains integer values that correlate to the following values
+
+1- tower id
+2- damage per bullet int
+3- reload time float
+4- number of bullets int
+5- continuouse reload (1 or 0) 
+6- bullet speed float
+7- damage type (0= knetic, 1=exp, 2=laser)
+8- area size flaot
+9- damage fall off (float)
+10- damage fall off area (float)
+11- tower cost int
+12- upgrade to (string)
+13- range (in terms of tiles) float
+14- placable (1 or 0)
+15- target (1 = ground, 2=air, 3=both)
+16- Efective against (2=mechanical, 1=infantry, 4=flyer, 8=alien) 
+17- Effective multiplier float
+18- bullet acceleration float
+19- start location {0.5,1.0} points
