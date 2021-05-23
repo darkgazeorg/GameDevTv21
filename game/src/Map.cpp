@@ -13,7 +13,7 @@ Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
 std::vector<Gorgon::Graphics::TextureImage> tiles;
 
 Gorgon::Geometry::PointList<Point> points = {
-    {1, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {2, 8}, {2, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
+    {1, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {3, 8}, {3, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
 };
 
 
@@ -154,9 +154,10 @@ Map::Map(std::default_random_engine &random) {
 }
 
 void Map::Render(Gorgon::Graphics::Layer &target) {
+    Point offset = Point((target.GetTargetSize() - (tilesize * mapsize))/2);
     for(int y=0; y<mapsize.Height; y++) {
         for(int x=0; x<mapsize.Width; x++) {
-            tiles[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height), tilesize);
+            tiles[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize-gridsize);
         }
     }
 }

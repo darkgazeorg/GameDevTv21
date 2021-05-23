@@ -10,7 +10,7 @@ int main() {
 
     Gorgon::Initialize("GDTD");
     
-    Gorgon::SceneManager scenemanager({1000, 800}, "GDTD");
+    Gorgon::SceneManager scenemanager(Gorgon::SceneManager::Fullscreen, "GDTD");
     Gorgon::UI::Initialize();
     
     scenemanager.NewScene<Game>(GameScene);
