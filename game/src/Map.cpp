@@ -143,14 +143,16 @@ Map::Map() {
         tiles.Add(four);
     }
     
-    mapsize = {20, 20};
-    std::fill_n(std::back_inserter(map), 400, 1);
+    mapsize = {40, 40};
+    std::fill_n(std::back_inserter(map), 1600, 1);
 
     auto maze = RecursiveBacktracker(10, 10);
 
     for(const auto& cell : maze) {
-        map[Get1DCoordinate(cell.first*2, mapsize.Width)] = 0;
-        map[Get1DCoordinate(GetNeighborTowards(cell.first*2, cell.second), mapsize.Width)] = 0;
+        auto coord = Point(cell.first.X + 3, cell.first.Y + 1);
+        coord *= 2;
+        map[Get1DCoordinate(coord, mapsize.Width)] = 0;
+        map[Get1DCoordinate(GetNeighborTowards(coord, cell.second), mapsize.Width)] = 0;
     }
 }
 
