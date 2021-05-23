@@ -265,7 +265,6 @@ Map::Map(std::default_random_engine &random) {
 
 }
 
-
 void Map::Render(Gorgon::Graphics::Layer &target) {
     for(int y=0; y<mapsize.Height; y++) {
         for(int x=0; x<mapsize.Width; x++) {
