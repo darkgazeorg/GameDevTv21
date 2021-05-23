@@ -2,6 +2,7 @@
 
 #include <Gorgon/Geometry/Point.h>
 #include <Gorgon/Geometry/Size.h>
+#include <random>
 
 using Gorgon::Geometry::Point;
 using Gorgon::Geometry::Size;

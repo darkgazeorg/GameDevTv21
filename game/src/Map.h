@@ -6,9 +6,29 @@
 #include <Gorgon/Graphics/Bitmap.h>
 #include <Gorgon/Graphics/Layer.h>
 
+enum class TileIndex {
+    Empty, 
+    Full, 
+    Single,
+    Left, 
+    Right,
+    Top, 
+    Bottom,
+    BottomRight,
+    BottomLeft, 
+    TopRight,
+    TopLeft, 
+    InnerBottomRight,
+    InnerBottomLeft,
+    InnerTopRight, 
+    InnerTopLeft,
+    
+    Max
+};
+
 class Map {
 public:
-    Map();
+    Map(std::default_random_engine &random);
     
     void Render(Gorgon::Graphics::Layer &target);
     
@@ -20,11 +40,11 @@ public:
         return map[x + y*mapsize.Width];
     }
     
-    void Set(int x, int y, int val) {
+    void Set(int x, int y, TileIndex val) {
         if(x < 0 || x >= mapsize.Width || y < 0 || y >= mapsize.Height)
             return;
         
-        map[x + y*mapsize.Width] = val;
+        map[x + y*mapsize.Width] = (int)val;
     }
     
 protected:

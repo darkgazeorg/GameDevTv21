@@ -31,6 +31,11 @@ if(MSVC)
 else()
   set(COMPILER_OPTIONS
     -Wall
+    -Wno-unknown-pragmas
+    -Wno-comment
+    -Wno-reorder
+    -Wno-unused-local-typedefs
+    -Wno-sign-compare #should not be here
     #-Werror
     #-pedantic-errors
     #-O2
