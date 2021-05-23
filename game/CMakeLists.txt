@@ -13,6 +13,7 @@ endif()
 set(SOURCES
   src/main.cpp
   src/Map.cpp
+  src/MapGen.cpp
 )
 
 add_executable(${PNAME} ${SOURCES})
