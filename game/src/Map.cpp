@@ -1,4 +1,6 @@
 #include "Map.h"
+#include "MapGen.h"
+#include "Types.h"
 #include <Gorgon/Geometry/PointList.h>
 #include <Gorgon/Resource/File.h>
 #include <Gorgon/Resource/Image.h>
@@ -98,10 +100,24 @@ Map::Map(std::default_random_engine &random) {
     }
     tiles = tileset.CreateAtlasImages(tilebounds);
     
-    mapsize = {20, 20};
+    mapsize = {21, 21};
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
-    
+
+    /*
+    auto in1d = [width = mapsize.Width] (Point coord) { return coord.Y * width + coord.X; };
+    RecursiveBacktracker mazegen(mapsize.Width / 2, mapsize.Height / 2);
+    auto cells = mazegen.Generate();
+    constexpr int walloffset = 1;
+    for(const auto& cell: cells) {
+        Point coord = cell.coord * 2;
+        map[in1d({coord.X + walloffset, coord.Y + walloffset})] = 0;
+        map[in1d({coord.X + 1 + walloffset, coord.Y + walloffset})] = cell.walls.at(Direction::East);
+        map[in1d({coord.X + walloffset, coord.Y + 1 + walloffset})] = cell.walls.at(Direction::South);
+        map[in1d({coord.X + 1 + walloffset, coord.Y + 1 + walloffset})] = 1;
+    }
+    */
+
     Point cur = points[0];
     int pdir = 0;
     for(int i=1; i<points.GetSize(); i++) {

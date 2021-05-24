@@ -4,20 +4,27 @@
 
 #include <Gorgon/Utils/Assert.h>
 
-#include <vector>
-#include <utility>
-#include <unordered_map>
 #include <type_traits>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+using Walls = std::unordered_map<Direction, bool>;
+struct Cell {
+    Point coord;
+    Walls walls;
+};
 
 class RecursiveBacktracker {
-    enum class Direction {
-        North,
-        South,
-        East,
-        West,
+    struct CellData {
+        Cell cell;
+        bool visited;
     };
 
+    friend std::ostream& operator<<(std::ostream& out, const CellData& data);
+
     static Point getneighbortowards(Point coordinate, Direction dir);
+    static Direction getopposingdir(Direction dir);
 
     template<typename Func, typename... Args>
     static auto executeperdir(
@@ -45,36 +52,25 @@ class RecursiveBacktracker {
     }
 
 public:
-    using CarveInstructions = std::vector<std::pair<Point, Direction>>;
+    RecursiveBacktracker(int width, int height);
 
-    RecursiveBacktracker(int width, int height, int walloffset = 1)
-        : walloffset(walloffset)
-        , bounds(Point(walloffset, walloffset), Point(width - (walloffset + 1), height - (walloffset + 1)))
-        , size(width, height)
-        , visitedcells(Size(width - (walloffset * 2), height - (walloffset * 2)).Area(), 0)
-    {
-        ASSERT(size.Area() > 0, "invalid size");
-    }
-
-    CarveInstructions Generate();
+    std::vector<Cell> Generate();
 
 private:
-    int walloffset;
-    Bounds bounds; // maze bounds, excluding outer walls
-    Size size; // full maze size, including outer walls
-    std::vector<int> visitedcells;
-    CarveInstructions carveinstr;
+    Size size;
+    std::vector<CellData> cells;
 
     int in1d(Point coord) const {
-        return (coord.Y - walloffset) * bounds.Right + (coord.X - walloffset);
+        return coord.Y * size.Width + coord.X;
     }
 
-    void markvisited(Point coord) {
-        visitedcells[in1d(coord)] = 1;
+    bool isvisited(Point coord) const {
+        return cells[in1d(coord)].visited;
     }
+
+    void removewall(Cell& cell, Cell& neighbor);
 
     bool checkbounds(Point coord, Direction dir) const;
+
     std::vector<Point> findunvisitedneighbors(Point current) const;
-    void removewall(Point current, Point neighbor);
-    void addenteranceandexit();
 };

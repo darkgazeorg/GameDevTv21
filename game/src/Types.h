@@ -13,3 +13,10 @@ using Gorgon::Geometry::Bounds;
 
 namespace Widgets = Gorgon::Widgets;
 namespace Color = Gorgon::Graphics::Color;
+
+enum class Direction {
+    North,
+    South,
+    East,
+    West,
+};
