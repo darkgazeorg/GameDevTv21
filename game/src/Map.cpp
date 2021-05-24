@@ -65,7 +65,7 @@ Map::Map(std::default_random_engine &random) {
         resources.LoadFile("Resources_1x.gor");
         resources.Prepare();
         
-        auto &tilesfold = resources.Root().Get<R::Folder>(0);
+        auto &tilesfold = resources.Root().Get<R::Folder>(1);
         
         for(auto &res : tilesfold) {
             if(res.GetGID() == R::GID::Image) {
