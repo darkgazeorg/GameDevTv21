@@ -4,9 +4,7 @@
 #include "Gorgon/Utils/Assert.h"
 #include <Gorgon/Types.h>
 
-#include <chrono>
 #include <cstdlib>
-#include <exception>
 #include <functional>
 #include <ostream>
 
