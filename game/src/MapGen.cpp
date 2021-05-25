@@ -10,14 +10,14 @@
 #include <functional>
 #include <ostream>
 
-#define ASSERT_WALL_EXITS(walls, dir) ASSERT(walls.count(dir) > 0, "wall does not exist")
+#define ASSERT_WALL_EXISTS(walls, dir) ASSERT(walls.count(dir) > 0, "wall does not exist")
 
 namespace {
     std::ostream& operator<<(std::ostream& out, const Walls& walls) {
-        ASSERT_WALL_EXITS(walls, Direction::West);
-        ASSERT_WALL_EXITS(walls, Direction::North);
-        ASSERT_WALL_EXITS(walls, Direction::East);
-        ASSERT_WALL_EXITS(walls, Direction::South);
+        ASSERT_WALL_EXISTS(walls, Direction::West);
+        ASSERT_WALL_EXISTS(walls, Direction::North);
+        ASSERT_WALL_EXISTS(walls, Direction::East);
+        ASSERT_WALL_EXISTS(walls, Direction::South);
         out << "W: " << walls.at(Direction::West)
             << ", N: " << walls.at(Direction::North)
             << ", E: " << walls.at(Direction::East)
@@ -113,9 +113,9 @@ void RecursiveBacktracker::removewall(Cell& current, Cell& neighbor)
         ASSERT(current.coord.X == neighbor.coord.X, "expected change only in Y");
         dir = Gorgon::Sign(neighbor.coord.Y - current.coord.Y) > 0 ? Direction::South : Direction::North;
     }
-    ASSERT_WALL_EXITS(current.walls, dir);
+    ASSERT_WALL_EXISTS(current.walls, dir);
     Direction opposingdir = getopposingdir(dir);
-    ASSERT_WALL_EXITS(current.walls, opposingdir);
+    ASSERT_WALL_EXISTS(current.walls, opposingdir);
     current.walls[dir] = false;
     neighbor.walls[opposingdir] = false;
 }
