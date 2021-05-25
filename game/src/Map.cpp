@@ -106,15 +106,21 @@ Map::Map(std::default_random_engine &random) {
 
     /*
     auto in1d = [width = mapsize.Width] (Point coord) { return coord.Y * width + coord.X; };
-    RecursiveBacktracker mazegen(mapsize.Width / 2, mapsize.Height / 2);
-    auto cells = mazegen.Generate();
+    Size mazesize(mapsize.Width / 2, mapsize.Height / 2);
+    RecursiveBacktracker mazegen;
+    auto maze = mazegen.Generate(mazesize);
+    auto solution = mazegen.Solve(maze, mazesize);
     constexpr int walloffset = 1;
-    for(const auto& cell: cells) {
+    for(const auto& cell: maze.second) {
         Point coord = cell.coord * 2;
         map[in1d({coord.X + walloffset, coord.Y + walloffset})] = 0;
         map[in1d({coord.X + 1 + walloffset, coord.Y + walloffset})] = cell.walls.at(Direction::East);
         map[in1d({coord.X + walloffset, coord.Y + 1 + walloffset})] = cell.walls.at(Direction::South);
         map[in1d({coord.X + 1 + walloffset, coord.Y + 1 + walloffset})] = 1;
+
+        if(std::find(solution.begin(), solution.end(), cell.coord) != solution.end()) {
+            map[in1d({coord.X + walloffset, coord.Y + walloffset})] = 8;
+        }
     }
     */
 

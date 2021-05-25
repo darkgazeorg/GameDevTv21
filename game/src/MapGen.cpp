@@ -54,12 +54,26 @@ Direction RecursiveBacktracker::getopposingdir(Direction dir) {
     return executeperdir(dir, fns);
 }
 
-RecursiveBacktracker::RecursiveBacktracker(int width, int height)
-    : size(width, height)
-{
+Direction RecursiveBacktracker::resolvedirection(Point current, Point neighbor) {
+    Direction dir = Direction::North;
+    if(current.X != neighbor.X) {
+        ASSERT(current.Y == neighbor.Y, "expected change only in X");
+        dir = Gorgon::Sign(neighbor.X - current.X) > 0 ? Direction::East : Direction::West;
+    }
+    else {
+        ASSERT(current.X == neighbor.X, "expected change only in Y");
+        dir = Gorgon::Sign(neighbor.Y - current.Y) > 0 ? Direction::South : Direction::North;
+    }
+    return dir;
+}
+
+void RecursiveBacktracker::clear(Size size) {
     ASSERT(size.Area() > 0, "invalid size");
-    for(int y = 0; y < height; y++) {
-        for(int x = 0; x < width; x++) {
+    this->size = size;
+    cells.reserve(size.Area());
+    cells.clear();
+    for(int y = 0; y < size.Width; y++) {
+        for(int x = 0; x < size.Height; x++) {
             cells.push_back({{{x, y},
                               {{Direction::East, true},
                                {Direction::West, true},
@@ -82,35 +96,9 @@ bool RecursiveBacktracker::checkbounds(Point coord, Direction dir) const {
     return RecursiveBacktracker::executeperdir(dir, fns);
 }
 
-std::vector<Point> RecursiveBacktracker::findunvisitedneighbors(Point current) const {
-    std::vector<Point> unvisited;
-    std::vector<std::pair<bool, Point>> neighbors = {
-        {checkbounds(current, Direction::West), getneighbortowards(current, Direction::West)},
-        {checkbounds(current, Direction::North), getneighbortowards(current, Direction::North)},
-        {checkbounds(current, Direction::East), getneighbortowards(current, Direction::East)},
-        {checkbounds(current, Direction::South), getneighbortowards(current, Direction::South)}
-    };
-    for(const auto& neighbor : neighbors) {
-        bool withinbounds = neighbor.first;
-        Point coord = neighbor.second;
-        if(withinbounds && !isvisited(coord)) {
-            unvisited.push_back(neighbor.second);
-        }
-    }
-    return unvisited;
-}
-
 void RecursiveBacktracker::removewall(Cell& current, Cell& neighbor)
 {
-    Direction dir = Direction::North;
-    if(current.coord.X != neighbor.coord.X) {
-        ASSERT(current.coord.Y == neighbor.coord.Y, "expected change only in X");
-        dir = Gorgon::Sign(neighbor.coord.X - current.coord.X) > 0 ? Direction::East : Direction::West;
-    }
-    else {
-        ASSERT(current.coord.X == neighbor.coord.X, "expected change only in Y");
-        dir = Gorgon::Sign(neighbor.coord.Y - current.coord.Y) > 0 ? Direction::South : Direction::North;
-    }
+    Direction dir = resolvedirection(current.coord, neighbor.coord);
     ASSERT_WALL_EXISTS(current.walls, dir);
     Direction opposingdir = getopposingdir(dir);
     ASSERT_WALL_EXISTS(current.walls, opposingdir);
@@ -118,7 +106,29 @@ void RecursiveBacktracker::removewall(Cell& current, Cell& neighbor)
     neighbor.walls[opposingdir] = false;
 }
 
-std::vector<Cell> RecursiveBacktracker::Generate() {
+std::pair<Point, Point> RecursiveBacktracker::genstartandend() {
+    Direction startedge = (Direction)(std::rand() % 4);
+    Direction endedge = getopposingdir(startedge);
+
+    std::unordered_map<Direction, std::function<Point()>> coordgenerators = {
+        {Direction::East, [this] {return Point(size.Width - 1, std::rand() % size.Height);}},
+        {Direction::West, [this] {return Point(0, std::rand() % size.Height);}},
+        {Direction::South, [this] {return Point(std::rand() % size.Width, size.Height - 1);}},
+        {Direction::North, [this] {return Point(std::rand() % size.Width, 0);}}
+    };
+
+    return {executeperdir(startedge, coordgenerators), executeperdir(endedge, coordgenerators)};
+}
+
+std::vector<Point> RecursiveBacktracker::findpassableneighbors(const Cell& current) const {
+    auto fn = [&current, this] (Point neighbor) {
+        return !isvisited(neighbor) && !current.walls.at(resolvedirection(current.coord, neighbor));
+    };
+    return findneighborsimpl(current.coord, fn);
+}
+
+Maze RecursiveBacktracker::Generate(Size size) {
+    clear(size);
     std::vector<CellData*> stack;
     CellData& first = cells[std::rand() % cells.size()];
     first.visited = true;
@@ -145,5 +155,26 @@ std::vector<Cell> RecursiveBacktracker::Generate() {
     for(const auto& cell: cells) {
         maze.push_back(cell.cell);
     }
-    return maze;
+    return {genstartandend(), maze};
+}
+
+std::vector<Point> RecursiveBacktracker::Solve(const Maze& maze, Size size) {
+    clear(size);
+    std::vector<Point> solution;
+    solution.push_back(maze.first.first);
+    while(true) {
+        Point current = solution.back();
+        if(current == maze.first.second) {
+            break;
+        }
+        std::vector<Point> neigbors = findpassableneighbors(maze.second[in1d(current)]);
+        if(neigbors.size() > 0) {
+            solution.push_back(neigbors[0]);
+        }
+        else {
+            solution.pop_back();
+        }
+        cells[in1d(current)].visited = true;
+    }
+    return solution;
 }
