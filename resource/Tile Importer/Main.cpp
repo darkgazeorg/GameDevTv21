@@ -103,7 +103,7 @@ void doimport(int scale) {
 				fold.Add(imres);
                 
                 
-                if(fold_name == "Towers"){
+                if(fold_name == "02Towers"){
                 
                     auto &data  = *new R::Data;
                     fold.Add(data);
@@ -118,7 +118,7 @@ void doimport(int scale) {
                     int damagetype = 0;
                     float areasize = 0.0;
                     float damagefalloff = 0.0;
-                    float damagefalloffarea = 0;
+                    float damagefalloffarea = 0.0;
                     int cost = 0;
                     std::string upgradepath = "";
                     float range = 0.0;
@@ -216,6 +216,7 @@ void doimport(int scale) {
                             startlocation  = String::To<Point>(line);
                     }
                     
+                    data.Append("name", name);
                     data.Append("tid", tid);
                     data.Append("dpb", dpb);
                     data.Append("reloadt", reloadt);
@@ -235,6 +236,87 @@ void doimport(int scale) {
                     data.Append("em", em);
                     data.Append("bacc", bacc);
                     data.Append("startlocation", startlocation);
+                }
+                
+                if(fold_name == "03Enemies"){
+                
+                    auto &data  = *new R::Data;
+                    fold.Add(data);
+
+                    auto name = FS::GetBasename(file_name);
+                    int eid = 0; //Enemy ID
+                    int enemytype = 0;
+                    float speed = 0.0;
+                    int hp = 0; // hitpoints
+                    int armor = 0; 
+                    int armorreac = 0;
+                    int armorshield = 0;
+                    float evasion = 0.0;
+                    int scraps = 0;
+                    int strength = 0;
+
+                    std::ifstream dataf(FS::Join(fold_path, name + ".txt"));
+
+                    if(dataf.is_open()) {
+                        std::string line;
+                        
+                        std::cout << "Found txt file for data" << std::endl;
+
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            eid = String::To<int>(line);
+                        
+                        std::cout << "ID = "<< std::to_string(eid) << std::endl;
+
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            enemytype = String::To<int>(line);
+                        
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            speed = String::To<float>(line);
+                            
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            hp = String::To<int>(line);
+                            
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            armor = String::To<int>(line);
+                            
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            armorreac = String::To<int>(line);
+                            
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            armorshield = String::To<int>(line);
+                            
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            evasion = String::To<float>(line);
+                            
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            scraps = String::To<int>(line);
+                            
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            strength = String::To<int>(line);
+                        
+                    }
+                    
+                    data.Append("name", name);
+                    data.Append("eid", eid);
+                    data.Append("enemytype", enemytype);
+                    data.Append("speed", speed);
+                    data.Append("hp", hp);
+                    data.Append("armor", armor);
+                    data.Append("armorreac",armorreac);
+                    data.Append("armorshield", armorshield);
+                    data.Append("evasion", evasion);
+                    data.Append("scraps", scraps);
+                    data.Append("strength", strength);
                 }
 
 				std::cout << String::Concat("Imported ", file_name, ".") << std::endl;
