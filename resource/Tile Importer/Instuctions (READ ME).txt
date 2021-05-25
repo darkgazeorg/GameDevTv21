@@ -3,15 +3,16 @@ The layout of resources in the assets are as follows
 Enemies:
 Text file contains integer values that correlate to the following values
 
-- Enemy type (2=mechanical, 1=infantry, 4=flyer, 8=alien)
-- Speed float
-- Hit points int
-- Armor int
-- Armor reactive (exposive) int
-- Armor shield (laser) int
-- evasion float
-- scraps int
-- strength int
+1- Enemy ID int
+2- Enemy type (2=mechanical, 1=infantry, 4=flyer, 8=alien)
+3- Speed float
+4- Hit points int
+5- Armor int
+6- Armor reactive (exposive) int
+7- Armor shield (laser) int
+8- evasion float
+9- scraps int
+10- strength int
 
 
 Towers:
