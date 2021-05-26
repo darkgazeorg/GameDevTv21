@@ -14,10 +14,6 @@ R::File resources;
 Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
 std::vector<Gorgon::Graphics::TextureImage> tiles;
 
-Gorgon::Geometry::PointList<Point> points = {
-    {1, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {3, 8}, {3, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
-};
-
 
 TileIndex corners[8][3][3] = {
     {
@@ -100,25 +96,18 @@ Map::Map(std::default_random_engine &random) {
     }
     tiles = tileset.CreateAtlasImages(tilebounds);
     
-    mapsize = {21, 21};
+    mapsize = {30, 30};
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
-    //points.Clear();
-    Size mazesize(mapsize.Width / 3, mapsize.Height / 3);
+    Size mazesize(5, 5);
     RecursiveBacktracker mazegen;
     auto maze = mazegen.Generate(mazesize);
     auto solution = mazegen.Solve(maze, mazesize);
-    constexpr int walloffset = 1;
-    for(const auto& cell: maze.second) {
-        Point coord = cell.coord * 3;
-       
-
-        if(std::find(solution.begin(), solution.end(), cell.coord) != solution.end()) {
-            //points.Push({coord.X + walloffset, coord.Y + walloffset});
-        }
+    Gorgon::Geometry::PointList<Point> points;
+    for(auto point : solution) {
+        points.Push({point.X * 3 + 5, point.Y * 3 + 5});
     }
-    
     
     for(int i=1; i<points.GetSize()-1; i++) {
         if(points[i-1].X == points[i].X && points[i].X == points[i+1].X) {
@@ -130,10 +119,7 @@ Map::Map(std::default_random_engine &random) {
             i--;
         }
     }
-    
 
-    std::copy(points.begin(), points.end(), std::ostream_iterator<Point>(std::cout, " "));
-    std::cout << std::endl;
     Point cur = points[0];
     int pdir = 0;
     for(int i=1; i<points.GetSize(); i++) {
