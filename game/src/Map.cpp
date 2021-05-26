@@ -67,7 +67,7 @@ Map::Map(std::default_random_engine &random) {
         resources.LoadFile("Resources_1x.gor");
         resources.Prepare();
         
-        auto &tilesfold = resources.Root().Get<R::Folder>(1);
+        auto &tilesfold = resources.Root().Get<R::Folder>(0);
         
         for(auto &res : tilesfold) {
             if(res.GetGID() == R::GID::Image) {
@@ -104,26 +104,36 @@ Map::Map(std::default_random_engine &random) {
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
-    /*
-    auto in1d = [width = mapsize.Width] (Point coord) { return coord.Y * width + coord.X; };
-    Size mazesize(mapsize.Width / 2, mapsize.Height / 2);
+    //points.Clear();
+    Size mazesize(mapsize.Width / 3, mapsize.Height / 3);
     RecursiveBacktracker mazegen;
     auto maze = mazegen.Generate(mazesize);
     auto solution = mazegen.Solve(maze, mazesize);
     constexpr int walloffset = 1;
     for(const auto& cell: maze.second) {
-        Point coord = cell.coord * 2;
-        map[in1d({coord.X + walloffset, coord.Y + walloffset})] = 0;
-        map[in1d({coord.X + 1 + walloffset, coord.Y + walloffset})] = cell.walls.at(Direction::East);
-        map[in1d({coord.X + walloffset, coord.Y + 1 + walloffset})] = cell.walls.at(Direction::South);
-        map[in1d({coord.X + 1 + walloffset, coord.Y + 1 + walloffset})] = 1;
+        Point coord = cell.coord * 3;
+       
 
         if(std::find(solution.begin(), solution.end(), cell.coord) != solution.end()) {
-            map[in1d({coord.X + walloffset, coord.Y + walloffset})] = 8;
+            //points.Push({coord.X + walloffset, coord.Y + walloffset});
         }
     }
-    */
+    
+    
+    for(int i=1; i<points.GetSize()-1; i++) {
+        if(points[i-1].X == points[i].X && points[i].X == points[i+1].X) {
+            points.Points.erase(points.begin() + i);
+            i--;
+        }
+        else if(points[i-1].Y == points[i].Y && points[i].Y == points[i+1].Y) {
+            points.Points.erase(points.begin() + i);
+            i--;
+        }
+    }
+    
 
+    std::copy(points.begin(), points.end(), std::ostream_iterator<Point>(std::cout, " "));
+    std::cout << std::endl;
     Point cur = points[0];
     int pdir = 0;
     for(int i=1; i<points.GetSize(); i++) {
