@@ -15,7 +15,7 @@ Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
 std::vector<Gorgon::Graphics::TextureImage> tiles;
 
 Gorgon::Geometry::PointList<Point> points = {
-    {1, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {3, 8}, {3, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
+    {0, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {3, 8}, {3, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
 };
 
 
