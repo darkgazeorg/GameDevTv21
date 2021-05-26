@@ -20,3 +20,25 @@ enum class Direction {
     East,
     West,
 };
+
+enum class DamageType {
+    Knetic,
+    Explosive,
+    Laser
+};
+
+enum class EnemyType {
+    Infantry = 1,
+    Mechanical = 2,
+    MechanicalInfantry = Mechanical | Infantry,
+    Alien = 8,
+    AlienInfantry = Alien | Infantry,
+    MechanicalAlien = Mechanical | Alien,
+    MechanicalAlienInfantry = Mechanical | Infantry | Alien,
+};
+
+enum class TargetType {
+    Ground = 1,
+    Air = 2,
+    GroundAndAir = 3
+};
