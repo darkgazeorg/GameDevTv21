@@ -12,9 +12,16 @@ endif()
 
 set(SOURCES
   src/main.cpp
+  src/GameScene.h
+  src/Scenes.h
+  src/Types.h
+  src/Map.h
   src/Map.cpp
+  src/MapGen.h
   src/MapGen.cpp
+  src/Tower.h
   src/Tower.cpp
+  src/ImProc.h
   src/Improc.cpp
 )
 
