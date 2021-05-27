@@ -15,6 +15,7 @@ set(SOURCES
   src/Map.cpp
   src/MapGen.cpp
   src/Tower.cpp
+  src/Improc.cpp
 )
 
 add_executable(${PNAME} ${SOURCES})

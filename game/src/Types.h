@@ -6,6 +6,7 @@
 #include <Gorgon/Geometry/Bounds.h>
 #include <Gorgon/Widgets/Registry.h>
 #include <random>
+#include <Gorgon/Resource/File.h>
 
 using Gorgon::Geometry::Point;
 using Gorgon::Geometry::Size;
@@ -44,3 +45,5 @@ enum class TargetType {
     Air = 2,
     GroundAndAir = 3
 };
+
+namespace R = Gorgon::Resource;

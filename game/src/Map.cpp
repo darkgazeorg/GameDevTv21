@@ -2,14 +2,12 @@
 #include "MapGen.h"
 #include "Types.h"
 #include <Gorgon/Geometry/PointList.h>
-#include <Gorgon/Resource/File.h>
 #include <Gorgon/Resource/Image.h>
 #include <Gorgon/CGI/Line.h>
 #include <cstdint>
 #include <cstdlib>
 #include <cassert>
-
-namespace R = Gorgon::Resource;
+#include "ImProc.h"
 
 R::File resources;
 Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
@@ -272,7 +270,7 @@ Map::Map(std::default_random_engine &random) {
         Gorgon::CGI::DrawLines(debug, {{x*tilesize.Width+0.5, 0}, {x*tilesize.Width+0.5, debug.GetHeight()}}, gridsize.Height, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5}));
     }
     for(auto &path : paths) {
-        Gorgon::CGI::DrawLines(debug, path.Flatten(0.05)*Sizef(tilesize), 2, Gorgon::CGI::SolidFill<>({Color::Aqua}));
+        Gorgon::CGI::DrawLines(debug, path.Flatten(0.05)*Sizef(tilesize), 0.5, Gorgon::CGI::SolidFill<>({Color::Aqua}));
     }
     
     debug.Prepare();
