@@ -5,7 +5,6 @@
 #include <Gorgon/Types.h>
 
 #include <cstdlib>
-#include <functional>
 #include <ostream>
 
 #define ASSERT_WALL_EXISTS(walls, dir) ASSERT(walls.count(dir) > 0, "wall does not exist")

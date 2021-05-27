@@ -4,6 +4,8 @@
 
 #include <Gorgon/Utils/Assert.h>
 
+#include <functional>
+#include <initializer_list>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -103,4 +105,27 @@ private:
         }
         return unvisited;
     }
+};
+
+class PathChecker {
+    using Constraint = std::function<bool(const std::vector<Point>&)>;
+
+public:
+    PathChecker(const std::initializer_list<Constraint>& constraints) {
+        for(const auto& constraint : constraints) {
+            this->constraints.push_back(constraint);
+        }
+    }
+
+    bool Check(const std::vector<Point>& path) const {
+        for(const auto& constraint: constraints) {
+            if(!constraint(path)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+private:
+    std::vector<Constraint> constraints;
 };

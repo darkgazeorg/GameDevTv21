@@ -102,16 +102,20 @@ Map::Map(std::default_random_engine &random) {
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
-    
+    auto checklength = [] (const std::vector<Point>& path) { return path.size() >= 15; };
+    PathChecker checker({checklength});
     Size mazesize(7, 5);
     RecursiveBacktracker mazegen;
-    auto maze = mazegen.Generate(mazesize);
-    auto solution = mazegen.Solve(maze, mazesize);
+    std::vector<Point> solution;
+
+    do {
+        solution = mazegen.Solve(mazegen.Generate(mazesize), mazesize);
+    } while(!checker.Check(solution));
+
     Gorgon::Geometry::PointList<Point> points;
     for(auto point : solution) {
         points.Push({point.X * 3+6, point.Y * 3+6});
     }
-    
     
     //flatten point list
     for(int i=1; i<points.GetSize()-1; i++) {
