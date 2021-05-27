@@ -4,7 +4,9 @@
 #include <Gorgon/Geometry/PointList.h>
 #include <Gorgon/Resource/Image.h>
 #include <Gorgon/CGI/Line.h>
+#include <algorithm>
 #include <cstdint>
+#include <cmath>
 #include <cstdlib>
 #include <cassert>
 #include "ImProc.h"
@@ -108,12 +110,21 @@ Map::Map(std::default_random_engine &random) {
     RecursiveBacktracker mazegen;
     std::vector<Point> solution;
 
-    do {
+    std::vector<std::vector<Point>> solutions;
+    while(solutions.size() < 100) {
         solution = mazegen.Solve(mazegen.Generate(mazesize), mazesize);
-    } while(!checker.Check(solution));
+        if(checker.Check(solution)) {
+            solutions.push_back(solution);
+        }
+    }
+
+    std::sort(solutions.begin(), solutions.end(), [] (const std::vector<Point>& lhs,
+                                                      const std::vector<Point>& rhs) {
+        return std::abs((int)lhs.size() - 23) < std::abs((int)rhs.size() - 23);
+    });
 
     Gorgon::Geometry::PointList<Point> points;
-    for(auto point : solution) {
+    for(auto point : solutions[0]) {
         points.Push({point.X * 3+6, point.Y * 3+6});
     }
     
