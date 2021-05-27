@@ -4,6 +4,7 @@
 #include <Gorgon/Geometry/PointList.h>
 #include <Gorgon/Resource/File.h>
 #include <Gorgon/Resource/Image.h>
+#include <Gorgon/CGI/Line.h>
 #include <cstdint>
 #include <cstdlib>
 #include <cassert>
@@ -14,6 +15,9 @@ R::File resources;
 Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
 std::vector<Gorgon::Graphics::TextureImage> tiles;
 
+Gorgon::Geometry::PointList<Point> points = {
+    {1, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {3, 8}, {3, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
+};
 
 TileIndex corners[8][3][3] = {
     {
@@ -96,19 +100,22 @@ Map::Map(std::default_random_engine &random) {
     }
     tiles = tileset.CreateAtlasImages(tilebounds);
     
-    mapsize = {30, 30};
+    mapsize = {33, 21};
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
-    Size mazesize(5, 5);
+    
+    Size mazesize(7, 5);
     RecursiveBacktracker mazegen;
     auto maze = mazegen.Generate(mazesize);
     auto solution = mazegen.Solve(maze, mazesize);
     Gorgon::Geometry::PointList<Point> points;
     for(auto point : solution) {
-        points.Push({point.X * 3 + 5, point.Y * 3 + 5});
+        points.Push({point.X * 3+6, point.Y * 3+6});
     }
     
+    
+    //flatten point list
     for(int i=1; i<points.GetSize()-1; i++) {
         if(points[i-1].X == points[i].X && points[i].X == points[i+1].X) {
             points.Points.erase(points.begin() + i);
@@ -120,6 +127,7 @@ Map::Map(std::default_random_engine &random) {
         }
     }
 
+    //create tile map
     Point cur = points[0];
     int pdir = 0;
     for(int i=1; i<points.GetSize(); i++) {
@@ -168,14 +176,114 @@ Map::Map(std::default_random_engine &random) {
         cur = points[i];
         pdir = dir;
     }
+    
+    //create paths
+    
+    //starting points
+    paths.resize(9);
+    int dir;
+    
+    bool nextyaxis = points[1].X != points[0].X;
+    int  nextdir    = !nextyaxis ? 
+        Gorgon::Sign(points[1].Y - points[0].Y) : 
+        Gorgon::Sign(points[1].X - points[0].X)
+    ;
+    
+    if(points[1].X != points[0].X) {
+        for(int y=-4; y<=4; y++) {
+            paths[y+4].SetStartingPoint(
+                {points[0].X+0.5 - nextdir, points[0].Y + 0.5 + y/4.f*nextdir}
+            );
+        }
+    }
+    else {
+        for(int x=-4; x<=4; x++) {
+            paths[x+4].SetStartingPoint(
+                {points[0].X + 0.5 - x/4.f*nextdir, points[0].Y - nextdir + 0.5}
+            );
+        }
+    }
+    
+    cur = points[0];
+    for(int i=1; i<points.GetSize(); i++) {
+        if(cur.X != points[i].X) {
+            dir = Gorgon::Sign(points[i].X - cur.X);
+            for(int y=-4; y<=4; y++) {
+                paths[y+4].Push({points[i].X+0.5 - 1*dir, points[i].Y + 0.5 + y/4.f*dir});
+            }
+        }
+        else {
+            dir = Gorgon::Sign(points[i].Y - cur.Y);
+            for(int x=-4; x<=4; x++) {
+                paths[x+4].Push({points[i].X + 0.5 - x/4.f*dir, points[i].Y + 0.5 - 1*dir});
+            }
+        }
+        
+        if(i != points.GetSize() - 1) {
+            bool curyaxis  = cur.Y != points[i].Y;
+            bool nextyaxis = !curyaxis;
+            int  nextdir    = nextyaxis ? 
+                Gorgon::Sign(points[i+1].Y - points[i].Y) : 
+                Gorgon::Sign(points[i+1].X - points[i].X)
+            ;
+            
+            if(points[i+1].X != points[i].X) {
+                for(int y=-4; y<=4; y++) {
+                    paths[y+4].Push(
+                        {paths[y+4].Get(paths[y+4].GetCount()-1).P3.X, points[i].Y + 0.5 + y/4.f*nextdir},
+                        {points[i].X+0.5 + nextdir, points[i].Y + 0.5 + y/4.f*nextdir}
+                    );
+                }
+            }
+            else {
+                for(int x=-4; x<=4; x++) {
+                    paths[x+4].Push(
+                        {points[i].X + 0.5 - x/4.f*nextdir, paths[x+4].Get(paths[x+4].GetCount()-1).P3.Y},
+                        {points[i].X + 0.5 - x/4.f*nextdir, points[i].Y + nextdir + 0.5}
+                    );
+                }
+            }
+        }
+        
+        cur = points[i];
+    }
+    
+    int last = points.GetSize() - 1;
+    if(points[last-1].X != points[last].X) {
+        dir = Gorgon::Sign(points[last].X - points[last-1].X);
+        for(int y=-4; y<=4; y++) {
+            paths[y+4].Push({points[last].X+0.5, points[last].Y + 0.5 + y/4.f*dir});
+        }
+    }
+    else {
+        dir = Gorgon::Sign(points[last].Y - points[last-1].Y);
+        for(int x=-4; x<=4; x++) {
+            paths[x+4].Push({points[last].X + 0.5 - x/4.f*dir, points[last].Y+0.5});
+        }
+    }
 
+    debug.Resize(mapsize * tilesize);
+    debug.Clear();
+    
+    for(int y=0; y<mapsize.Height; y++) {
+        Gorgon::CGI::DrawLines(debug, {{0, y*tilesize.Height+0.5}, {debug.GetWidth(), y*tilesize.Height+0.5}}, gridsize.Width, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5}));
+    }
+    for(int x=0; x<mapsize.Width; x++) {
+        Gorgon::CGI::DrawLines(debug, {{x*tilesize.Width+0.5, 0}, {x*tilesize.Width+0.5, debug.GetHeight()}}, gridsize.Height, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5}));
+    }
+    for(auto &path : paths) {
+        Gorgon::CGI::DrawLines(debug, path.Flatten(0.05)*Sizef(tilesize), 2, Gorgon::CGI::SolidFill<>({Color::Aqua}));
+    }
+    
+    debug.Prepare();
 }
 
 void Map::Render(Gorgon::Graphics::Layer &target) {
     Point offset = Point((target.GetTargetSize() - (tilesize * mapsize))/2);
     for(int y=0; y<mapsize.Height; y++) {
         for(int x=0; x<mapsize.Width; x++) {
-            tiles[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize-gridsize);
+            tiles[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
         }
     }
+    debug.Draw(target, offset);
 }

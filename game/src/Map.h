@@ -5,6 +5,7 @@
 #include <vector>
 #include <Gorgon/Graphics/Bitmap.h>
 #include <Gorgon/Graphics/Layer.h>
+#include <Gorgon/CGI/Bezier.h>
 
 enum class TileIndex {
     Empty, 
@@ -52,4 +53,6 @@ protected:
     Size mapsize;
     Size tilesize = {48, 48};
     Size gridsize = {1, 1};
+    Gorgon::Graphics::Bitmap debug;
+    std::vector<Gorgon::CGI::Curves> paths;
 };

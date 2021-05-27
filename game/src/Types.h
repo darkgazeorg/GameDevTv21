@@ -9,6 +9,8 @@
 
 using Gorgon::Geometry::Point;
 using Gorgon::Geometry::Size;
+using Gorgon::Geometry::Pointf;
+using Gorgon::Geometry::Sizef;
 using Gorgon::Geometry::Bounds;
 
 namespace Widgets = Gorgon::Widgets;

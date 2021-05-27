@@ -72,8 +72,8 @@ void RecursiveBacktracker::clear(Size size) {
     this->size = size;
     cells.reserve(size.Area());
     cells.clear();
-    for(int y = 0; y < size.Width; y++) {
-        for(int x = 0; x < size.Height; x++) {
+    for(int y = 0; y < size.Height; y++) {
+        for(int x = 0; x < size.Width; x++) {
             cells.push_back({{{x, y},
                               {{Direction::East, true},
                                {Direction::West, true},
