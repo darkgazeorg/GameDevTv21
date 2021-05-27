@@ -102,7 +102,7 @@ Map::Map(std::default_random_engine &random) {
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
-    auto checklength = [] (const std::vector<Point>& path) { return path.size() >= 15; };
+    auto checklength = [] (const std::vector<Point>& path) { return path.size() > 15 && path.size() <= 30; };
     PathChecker checker({checklength});
     Size mazesize(7, 5);
     RecursiveBacktracker mazegen;
