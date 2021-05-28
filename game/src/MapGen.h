@@ -20,6 +20,8 @@ struct Cell {
     Walls walls;
 };
 
+std::vector<Point> StretchUTurns(std::vector<Point> orgpath);
+
 class RecursiveBacktracker {
     struct CellData {
         Cell cell;
@@ -30,7 +32,6 @@ class RecursiveBacktracker {
 
     static Point getneighbortowards(Point coordinate, Direction dir);
     static Direction getopposingdir(Direction dir);
-    static Direction resolvedirection(Point current, Point target);
 
     template<typename Func, typename... Args>
     static auto executeperdir(

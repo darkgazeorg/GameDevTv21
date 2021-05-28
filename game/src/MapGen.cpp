@@ -4,12 +4,68 @@
 #include "Gorgon/Utils/Assert.h"
 #include <Gorgon/Types.h>
 
+#include <array>
 #include <cstdlib>
 #include <ostream>
 
 #define ASSERT_WALL_EXISTS(walls, dir) ASSERT(walls.count(dir) > 0, "wall does not exist")
 
 namespace {
+    enum class ShapeType {
+        EastNorth,
+        EastSouth,
+        WestNorth,
+        WestSouth,
+        NorthEast,
+        NorthWest,
+        SouthEast,
+        SouthWest,
+        End
+    };
+
+    template<typename T, int N>
+    using Arr = std::array<T, N>;
+    constexpr int dirsize = (int)Direction::End;
+    using UShapeMatrix = Arr<Arr<Arr<ShapeType, dirsize>, dirsize>, dirsize>;
+
+    Direction resolvedirection(Point current, Point neighbor) {
+        Direction dir = Direction::End;
+        if(current.X != neighbor.X) {
+            ASSERT(current.Y == neighbor.Y, "expected change only in X");
+            dir = Gorgon::Sign(neighbor.X - current.X) > 0 ? Direction::East : Direction::West;
+        }
+        else {
+            ASSERT(current.X == neighbor.X, "expected change only in Y");
+            dir = Gorgon::Sign(neighbor.Y - current.Y) > 0 ? Direction::South : Direction::North;
+        }
+        return dir;
+    }
+
+    UShapeMatrix initushapematrix() {
+        UShapeMatrix ushapes;
+        constexpr int end = (int)Direction::End;
+        for(int i = 0; i < end; i++) {
+            for(int j = 0; j < end; j++) {
+                for(int k = 0; k < end; k++) {
+                    ushapes[i][j][k] = ShapeType::End;
+                }
+            }
+        }
+        constexpr int east = (int)Direction::East;
+        constexpr int west = (int)Direction::West;
+        constexpr int north = (int)Direction::North;
+        constexpr int south = (int)Direction::South;
+        ushapes[east][north][west] = ShapeType::EastNorth;
+        ushapes[east][south][west] = ShapeType::EastSouth;
+        ushapes[west][north][east] = ShapeType::WestNorth;
+        ushapes[west][south][east] = ShapeType::WestSouth;
+        ushapes[north][east][south] = ShapeType::NorthEast;
+        ushapes[north][west][south] = ShapeType::NorthWest;
+        ushapes[south][east][north] = ShapeType::SouthEast;
+        ushapes[south][west][north] = ShapeType::SouthWest;
+        return ushapes;
+    }
+
     std::ostream& operator<<(std::ostream& out, const Walls& walls) {
         ASSERT_WALL_EXISTS(walls, Direction::West);
         ASSERT_WALL_EXISTS(walls, Direction::North);
@@ -33,6 +89,37 @@ std::ostream& operator<<(std::ostream& out, const RecursiveBacktracker::CellData
     return out;
 }
 
+std::vector<Point> StretchUTurns(std::vector<Point> orgpath) {
+    static const UShapeMatrix ushapes = initushapematrix();
+    static const std::array<Point, 10> shiftamounts = {
+        Point(0, -1),
+        Point(0, 1),
+        Point(0, -1),
+        Point(0, 1),
+        Point(1, 0),
+        Point(-1, 0),
+        Point(1, 0),
+        Point(-1, 0)
+    };
+    std::vector<Point> path;
+    path.reserve(orgpath.size());
+    constexpr int stepsize = 3;
+    for(std::size_t i = 0; i < orgpath.size() - stepsize; i++) {
+        path.push_back(orgpath[i]);
+        Direction first = resolvedirection(orgpath[i], orgpath[i + 1]);
+        Direction second = resolvedirection(orgpath[i + 1], orgpath[i + 2]);
+        Direction third = resolvedirection(orgpath[i + 2], orgpath[i + 3]);
+        ShapeType type = ushapes[(int)first][(int)second][(int)third];
+        if(type != ShapeType::End) {
+            path.push_back(orgpath[i + 1]);
+            for(std::size_t j = i + 1; j < orgpath.size(); j++) {
+                orgpath[j] += shiftamounts[(int)type];
+            }
+        }
+    }
+    return path;
+}
+
 Point RecursiveBacktracker::getneighbortowards(Point coord, Direction dir) {
     const std::unordered_map<Direction, std::function<Point()>> fns = {
         {Direction::East, [coord] {return Point(coord.X + 1, coord.Y);}},
@@ -51,19 +138,6 @@ Direction RecursiveBacktracker::getopposingdir(Direction dir) {
         {Direction::North, [] {return Direction::South;}}
     };
     return executeperdir(dir, fns);
-}
-
-Direction RecursiveBacktracker::resolvedirection(Point current, Point neighbor) {
-    Direction dir = Direction::North;
-    if(current.X != neighbor.X) {
-        ASSERT(current.Y == neighbor.Y, "expected change only in X");
-        dir = Gorgon::Sign(neighbor.X - current.X) > 0 ? Direction::East : Direction::West;
-    }
-    else {
-        ASSERT(current.X == neighbor.X, "expected change only in Y");
-        dir = Gorgon::Sign(neighbor.Y - current.Y) > 0 ? Direction::South : Direction::North;
-    }
-    return dir;
 }
 
 void RecursiveBacktracker::clear(Size size) {

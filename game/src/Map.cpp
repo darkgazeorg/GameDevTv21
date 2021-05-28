@@ -100,7 +100,7 @@ Map::Map(std::default_random_engine &random) {
     }
     tiles = tileset.CreateAtlasImages(tilebounds);
     
-    mapsize = {33, 21};
+    mapsize = {41, 29};
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
@@ -123,11 +123,12 @@ Map::Map(std::default_random_engine &random) {
         return std::abs((int)lhs.size() - 23) < std::abs((int)rhs.size() - 23);
     });
 
+    solutions[0] = StretchUTurns(solutions[0]);
     Gorgon::Geometry::PointList<Point> points;
     for(auto point : solutions[0]) {
-        points.Push({point.X * 3+6, point.Y * 3+6});
+        points.Push({point.X * 3+8, point.Y * 3+8});
     }
-    
+
     //flatten point list
     for(int i=1; i<points.GetSize()-1; i++) {
         if(points[i-1].X == points[i].X && points[i].X == points[i+1].X) {

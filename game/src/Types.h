@@ -22,6 +22,7 @@ enum class Direction {
     South,
     East,
     West,
+    End,
 };
 
 enum class DamageType {
