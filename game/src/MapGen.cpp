@@ -4,6 +4,7 @@
 #include "Gorgon/Utils/Assert.h"
 #include <Gorgon/Types.h>
 
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <ostream>
@@ -66,6 +67,19 @@ namespace {
         return ushapes;
     }
 
+    std::vector<Point> normalizepath(std::vector<Point> path) {
+        ASSERT(path.size() > 0, "empty path");
+        const auto sortx = [] (const Point& lhs, const Point& rhs) { return lhs.X < rhs.X; };
+        const auto sorty = [] (const Point& lhs, const Point& rhs) { return lhs.Y < rhs.Y; };
+        int minx = (*std::min_element(path.begin(), path.end(), sortx)).X;
+        int miny = (*std::min_element(path.begin(), path.end(), sorty)).Y;
+        for(auto& point : path) {
+            if(minx < 0) point.X += std::abs(minx);
+            if(miny < 0) point.Y += std::abs(miny);
+        }
+        return path;
+    }
+
     std::ostream& operator<<(std::ostream& out, const Walls& walls) {
         ASSERT_WALL_EXISTS(walls, Direction::West);
         ASSERT_WALL_EXISTS(walls, Direction::North);
@@ -104,8 +118,11 @@ std::vector<Point> StretchUTurns(std::vector<Point> orgpath) {
     std::vector<Point> path;
     path.reserve(orgpath.size());
     constexpr int stepsize = 3;
-    for(std::size_t i = 0; i < orgpath.size() - stepsize; i++) {
+    for(std::size_t i = 0; i < orgpath.size(); i++) {
         path.push_back(orgpath[i]);
+        if(i >= orgpath.size() - stepsize) {
+            continue;
+        }
         Direction first = resolvedirection(orgpath[i], orgpath[i + 1]);
         Direction second = resolvedirection(orgpath[i + 1], orgpath[i + 2]);
         Direction third = resolvedirection(orgpath[i + 2], orgpath[i + 3]);
@@ -117,7 +134,7 @@ std::vector<Point> StretchUTurns(std::vector<Point> orgpath) {
             }
         }
     }
-    return path;
+    return normalizepath(path);
 }
 
 Point RecursiveBacktracker::getneighbortowards(Point coord, Direction dir) {
@@ -190,7 +207,11 @@ std::pair<Point, Point> RecursiveBacktracker::genstartandend() {
         {Direction::North, [this] {return Point(std::rand() % size.Width, 0);}}
     };
 
-    return {executeperdir(startedge, coordgenerators), executeperdir(endedge, coordgenerators)};
+    Point enterance = executeperdir(startedge, coordgenerators);
+    ASSERT(enterance.X >= 0 && enterance.Y >= 0, "invalid coordinate");
+    Point exit = executeperdir(endedge, coordgenerators);
+    ASSERT(exit.X >= 0 && exit.Y >= 0, "invalid coordinate");
+    return {enterance, exit};
 }
 
 std::vector<Point> RecursiveBacktracker::findpassableneighbors(const Cell& current) const {
@@ -226,6 +247,7 @@ Maze RecursiveBacktracker::Generate(Size size) {
     }
     std::vector<Cell> maze;
     for(const auto& cell: cells) {
+        ASSERT(cell.cell.coord.X >= 0 &&cell.cell.coord.Y >= 0, "invalid coordinate");
         maze.push_back(cell.cell);
     }
     return {genstartandend(), maze};
