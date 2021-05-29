@@ -53,6 +53,7 @@ protected:
     Size mapsize;
     Size tilesize = {48, 48};
     Size gridsize = {1, 1};
+    std::vector<Gorgon::Graphics::TextureImage> &tileset;
     Gorgon::Graphics::Bitmap debug;
     std::vector<Gorgon::CGI::Curves> paths;
 };

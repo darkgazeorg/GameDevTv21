@@ -23,6 +23,8 @@ set(SOURCES
   src/Tower.cpp
   src/ImProc.h
   src/Improc.cpp
+  src/Resources.h
+  src/Resources.cpp
 )
 
 add_executable(${PNAME} ${SOURCES})
