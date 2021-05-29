@@ -1,9 +1,9 @@
 The layout of resources in the assets are as follows
 
 Enemies:
-Text file contains integer values that correlate to the following values
+Text file contains integer, float, string values that correlate to the following values
 
-1- Enemy ID int
+1- Enemy name string
 2- Enemy type (2=mechanical, 1=infantry, 4=flyer, 8=alien)
 3- Speed float
 4- Hit points int
@@ -13,12 +13,13 @@ Text file contains integer values that correlate to the following values
 8- evasion float
 9- scraps int
 10- strength int
+11- Image string
 
 
 Towers:
-Text file contains integer values that correlate to the following values
+Text file contains integer, float and string values that correlate to the following values
 
-1- tower id
+1- Tower name
 2- damage per bullet int
 3- reload time float
 4- number of bullets int
@@ -36,4 +37,9 @@ Text file contains integer values that correlate to the following values
 16- Efective against (2=mechanical, 1=infantry, 4=flyer, 8=alien) 
 17- Effective multiplier float
 18- bullet acceleration float
-19- start location {0.5,1.0} points
+19- start location (0.5,1.0) points
+20- Base Image string
+21- Tower Image string
+22- Effect Image string
+23- projectile image string
+24- projectile effect image string

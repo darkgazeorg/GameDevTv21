@@ -66,6 +66,17 @@ void doimport(int scale) {
 				count++;
 			}
 		}
+		
+		for(FS::Iterator it(fold_path); it.IsValid(); it.Next()) {
+			auto file_name = *it;
+			auto file_path = FS::Join(fold_path, file_name);
+
+			if(Gorgon::String::ToLower(FS::GetExtension(file_name)) != "txt")
+				continue;
+
+            folders.back().filenames.push_back(file_name);
+            count++;
+		}
 	}
 
 
@@ -80,36 +91,51 @@ void doimport(int scale) {
 		auto fold_path = FS::Join("../assets/", fold_name);
 
 		std::cout << String::Concat("Importing folder ", fold_name, "...") << std::endl;
+        
 
 		//ignore files
 		if(!FS::IsDirectory(fold_path))
 			continue;
 
-		auto &fold = *new R::Folder();
+		
+        auto &fold = *new R::Folder();
 		file.Root().Add(fold);
 		fold.SetName(fold_name);
+        
 
 		std::sort(f.filenames.begin(), f.filenames.end());
-
+        
 		for(auto &fn : f.filenames) {
-			auto file_name = fn;
+            auto file_name = fn;
 			auto file_path = FS::Join(fold_path, file_name);
             
-			Bitmap im;
-			if(im.Import(file_path)) {
-				im = Scale(im, scale);
-                
-				auto &imres = *new R::Image(std::move(im));
-				fold.Add(imres);
-                
-                
-                if(fold_name == "02Towers"){
+            //==========================================================================
+            if(fold_name != "04TowersData" && fold_name != "05EnemiesData"){
+                Bitmap im;
+                if(im.Import(file_path)) {
+                    im = Scale(im, scale);
+                    
+                    auto &imres = *new R::Image(std::move(im));
+                    imres.SetName(FS::GetBasename(file_name));
+                    
+                    fold.Add(imres);
+                    
+                    std::cout << String::Concat("Imported Graphic Resouce: ", file_name, "") << std::endl;
+                    ind++;
+                }
+                else {
+                    std::cout << String::Concat("Cannot import file: ", file_name, "!") << std::endl;
+                }
+            }
+            
+            //==========================================================================
+            
+            if(fold_name == "04TowersData"){
                 
                     auto &data  = *new R::Data;
-                    fold.Add(data);
 
                     auto name = FS::GetBasename(file_name);
-                    int tid = 0; //Tower ID
+                    std::string txtname = ""; //Tower ID
                     int dpb = 0; //damage per bullet
                     float reloadt = 0.0; //reload time
                     int bcapacity = 0; //bullet capacity
@@ -127,21 +153,22 @@ void doimport(int scale) {
                     float ea = 0.0; //effective against
                     float em = 0.0; //effective multiplier
                     float bacc = 0.0; //bullet acceleration
-                    auto startlocation = Point(0, 0);
-                    //auto off  = ;
+                    std::string points = "";
+                    std::string base = "";
+                    std::string top = "";
+                    std::string effect = "";
+                    std::string projectile = "";
+                    std::string projectileEffect = "";
+                    
 
                     std::ifstream dataf(FS::Join(fold_path, name + ".txt"));
 
                     if(dataf.is_open()) {
                         std::string line;
-                        
-                        std::cout << "Found txt file for data" << std::endl;
 
                         std::getline(dataf, line);
                         if(!line.empty())
-                            tid = String::To<int>(line);
-                        
-                        std::cout << "ID = "<< std::to_string(tid) << std::endl;
+                            txtname = line;
 
                         std::getline(dataf, line);
                         if(!line.empty())
@@ -213,11 +240,30 @@ void doimport(int scale) {
                         
                         std::getline(dataf, line);
                         if(!line.empty())
-                            startlocation  = String::To<Point>(line);
+                            points  = line;
+                        
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            base  = line;
+                        
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            top  = line;
+                        
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            effect  = line;
+                        
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            projectile  = line;
+                        
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            projectileEffect  = line;
                     }
                     
-                    data.Append("name", name);
-                    data.Append("tid", tid);
+                    data.Append("name", txtname);
                     data.Append("dpb", dpb);
                     data.Append("reloadt", reloadt);
                     data.Append("bcapacity", bcapacity);
@@ -235,16 +281,26 @@ void doimport(int scale) {
                     data.Append("ea", ea);
                     data.Append("em", em);
                     data.Append("bacc", bacc);
-                    data.Append("startlocation", startlocation);
+                    data.Append("points", points);
+                    data.Append("base", base);
+                    data.Append("top", top);
+                    data.Append("effect", effect);
+                    data.Append("projectile", projectile);
+                    data.Append("projectileEffect", projectileEffect);
+                    
+                    fold.Add(data);
+                    
+                    std::cout << "Imported data file" << txtname << std::endl;
                 }
-                
-                if(fold_name == "03Enemies"){
+            
+            
+            //==========================================================================
+            if(fold_name == "05EnemiesData"){
                 
                     auto &data  = *new R::Data;
-                    fold.Add(data);
 
                     auto name = FS::GetBasename(file_name);
-                    int eid = 0; //Enemy ID
+                    std::string txtname = ""; //Enemy ID
                     int enemytype = 0;
                     float speed = 0.0;
                     int hp = 0; // hitpoints
@@ -254,19 +310,16 @@ void doimport(int scale) {
                     float evasion = 0.0;
                     int scraps = 0;
                     int strength = 0;
+                    std::string image = "";
 
                     std::ifstream dataf(FS::Join(fold_path, name + ".txt"));
 
                     if(dataf.is_open()) {
                         std::string line;
-                        
-                        std::cout << "Found txt file for data" << std::endl;
 
                         std::getline(dataf, line);
                         if(!line.empty())
-                            eid = String::To<int>(line);
-                        
-                        std::cout << "ID = "<< std::to_string(eid) << std::endl;
+                            txtname = line;
 
                         std::getline(dataf, line);
                         if(!line.empty())
@@ -304,10 +357,13 @@ void doimport(int scale) {
                         if(!line.empty())
                             strength = String::To<int>(line);
                         
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            image = line;
+                        
                     }
                     
-                    data.Append("name", name);
-                    data.Append("eid", eid);
+                    data.Append("name", txtname);
                     data.Append("enemytype", enemytype);
                     data.Append("speed", speed);
                     data.Append("hp", hp);
@@ -317,14 +373,14 @@ void doimport(int scale) {
                     data.Append("evasion", evasion);
                     data.Append("scraps", scraps);
                     data.Append("strength", strength);
+                    data.Append("image", image);
+                    
+                    fold.Add(data);
+                    
+                    std::cout << "Imported data file" << txtname << std::endl;
                 }
-
-				std::cout << String::Concat("Imported ", file_name, ".") << std::endl;
-				ind++;
-			}
-			else {
-				std::cout << String::Concat("Cannot import file: ", file_name, "!") << std::endl;
-			}
+                
+            
 		}
 	}
 
