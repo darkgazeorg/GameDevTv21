@@ -1,24 +1,24 @@
-RocketTowerL1
+Rocket tower II
 10
 4.5
+2
 1
 20
+1
 1.0
-0
 0.0
 0.1
-0.0
-10
-rocket,laser
-5
-1
+7
+
+6
+0
 3
-1
+0
 0.20
 0.2
-(0.5,1.0),(0.5,1.0),(1,0)(1,1)
+(0.25,0.5) (0.75,0.5)
 Base01
-Tower03
+Tower02
 
 Rocket01
-Expo03
+Expo02

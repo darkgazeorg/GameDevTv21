@@ -37,7 +37,7 @@ Text file contains integer, float and string values that correlate to the follow
 16- Efective against (2=mechanical, 1=infantry, 4=flyer, 8=alien) 
 17- Effective multiplier float
 18- bullet acceleration float
-19- start location (0.5,1.0) points
+19- start location (0.5,1.0) points space delimitered
 20- Base Image string
 21- Tower Image string
 22- Effect Image string

@@ -101,6 +101,7 @@ void doimport(int scale) {
         auto &fold = *new R::Folder();
 		file.Root().Add(fold);
 		fold.SetName(fold_name);
+        fold.SetUseNameMap(true);
         
 
 		std::sort(f.filenames.begin(), f.filenames.end());
@@ -150,7 +151,7 @@ void doimport(int scale) {
                     float range = 0.0;
                     int placeable = 0;
                     int target = 0;
-                    float ea = 0.0; //effective against
+                    int ea = 0; //effective against
                     float em = 0.0; //effective multiplier
                     float bacc = 0.0; //bullet acceleration
                     std::string points = "";
@@ -228,7 +229,7 @@ void doimport(int scale) {
                         
                         std::getline(dataf, line);
                         if(!line.empty())
-                            ea = String::To<float>(line);
+                            ea = String::To<int>(line);
                         
                         std::getline(dataf, line);
                         if(!line.empty())
@@ -263,6 +264,7 @@ void doimport(int scale) {
                             projectileEffect  = line;
                     }
                     
+                    data.SetName(name);
                     data.Append("name", txtname);
                     data.Append("dpb", dpb);
                     data.Append("reloadt", reloadt);
