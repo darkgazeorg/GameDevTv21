@@ -4,6 +4,7 @@
 #include "Gorgon/Utils/Assert.h"
 #include <Gorgon/Types.h>
 
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <ostream>
@@ -11,22 +12,35 @@
 #define ASSERT_WALL_EXISTS(walls, dir) ASSERT(walls.count(dir) > 0, "wall does not exist")
 
 namespace {
-    enum class ShapeType {
-        EastNorth,
-        EastSouth,
-        WestNorth,
-        WestSouth,
-        NorthEast,
-        NorthWest,
-        SouthEast,
-        SouthWest,
-        End
-    };
-
     template<typename T, int N>
     using Arr = std::array<T, N>;
     constexpr int dirsize = (int)Direction::End;
-    using UShapeMatrix = Arr<Arr<Arr<ShapeType, dirsize>, dirsize>, dirsize>;
+    using UShapeMatrix = Arr<Arr<Arr<Direction, dirsize>, dirsize>, dirsize>;
+
+    template<typename Func, typename... Args>
+    static auto executeperdir(
+        Direction dir,
+        const std::unordered_map<Direction, Func>& funcs,
+        Args... args) {
+        switch(dir) {
+        case Direction::East:
+            return funcs.at(Direction::East)(args...);
+            break;
+        case Direction::West:
+            return funcs.at(Direction::West)(args...);
+            break;
+        case Direction::South:
+            return funcs.at(Direction::South)(args...);
+            break;
+        case Direction::North:
+            return funcs.at(Direction::North)(args...);
+            break;
+        default:
+            Gorgon::Utils::ASSERT_FALSE("Unknown direction");
+        }
+        typename std::result_of<Func(Args...)>::type ret{};
+        return ret;
+    }
 
     Direction resolvedirection(Point current, Point neighbor) {
         Direction dir = Direction::End;
@@ -47,7 +61,7 @@ namespace {
         for(int i = 0; i < end; i++) {
             for(int j = 0; j < end; j++) {
                 for(int k = 0; k < end; k++) {
-                    ushapes[i][j][k] = ShapeType::End;
+                    ushapes[i][j][k] = Direction::End;
                 }
             }
         }
@@ -55,15 +69,39 @@ namespace {
         constexpr int west = (int)Direction::West;
         constexpr int north = (int)Direction::North;
         constexpr int south = (int)Direction::South;
-        ushapes[east][north][west] = ShapeType::EastNorth;
-        ushapes[east][south][west] = ShapeType::EastSouth;
-        ushapes[west][north][east] = ShapeType::WestNorth;
-        ushapes[west][south][east] = ShapeType::WestSouth;
-        ushapes[north][east][south] = ShapeType::NorthEast;
-        ushapes[north][west][south] = ShapeType::NorthWest;
-        ushapes[south][east][north] = ShapeType::SouthEast;
-        ushapes[south][west][north] = ShapeType::SouthWest;
+        ushapes[east][north][west] = Direction::North;
+        ushapes[east][south][west] = Direction::South;
+        ushapes[west][north][east] = Direction::North;
+        ushapes[west][south][east] = Direction::South;
+        ushapes[north][east][south] = Direction::East;
+        ushapes[north][west][south] = Direction::West;
+        ushapes[south][east][north] = Direction::East;
+        ushapes[south][west][north] = Direction::West;
         return ushapes;
+    }
+
+    std::vector<Point> normalizepath(std::vector<Point> path) {
+        ASSERT(path.size() > 0, "empty path");
+        const auto sortx = [] (const Point& lhs, const Point& rhs) { return lhs.X < rhs.X; };
+        const auto sorty = [] (const Point& lhs, const Point& rhs) { return lhs.Y < rhs.Y; };
+        int minx = (*std::min_element(path.begin(), path.end(), sortx)).X;
+        int miny = (*std::min_element(path.begin(), path.end(), sorty)).Y;
+        for(auto& point : path) {
+            if(minx < 0) point.X += std::abs(minx);
+            if(miny < 0) point.Y += std::abs(miny);
+        }
+        return path;
+    }
+
+    std::ostream& operator<<(std::ostream& out, Direction dir) {
+        static const std::unordered_map<Direction, std::function<std::string()>> printers = {
+            {Direction::East, [] () {return "East";}},
+            {Direction::West, [] () {return "West";}},
+            {Direction::North, [] () {return "North";}},
+            {Direction::South, [] () {return "South";}}
+        };
+        out << executeperdir(dir, printers);
+        return out;
     }
 
     std::ostream& operator<<(std::ostream& out, const Walls& walls) {
@@ -91,33 +129,48 @@ std::ostream& operator<<(std::ostream& out, const RecursiveBacktracker::CellData
 
 std::vector<Point> StretchUTurns(std::vector<Point> orgpath) {
     static const UShapeMatrix ushapes = initushapematrix();
-    static const std::array<Point, 10> shiftamounts = {
-        Point(0, -1),
-        Point(0, 1),
+    static const std::array<Point, (int)Direction::End> shiftamounts = {
         Point(0, -1),
         Point(0, 1),
         Point(1, 0),
         Point(-1, 0),
-        Point(1, 0),
-        Point(-1, 0)
     };
     std::vector<Point> path;
-    path.reserve(orgpath.size());
+    path.reserve(orgpath.size() + orgpath.size() / 3);
+    orgpath.reserve(path.capacity());
     constexpr int stepsize = 3;
-    for(std::size_t i = 0; i < orgpath.size() - stepsize; i++) {
-        path.push_back(orgpath[i]);
-        Direction first = resolvedirection(orgpath[i], orgpath[i + 1]);
-        Direction second = resolvedirection(orgpath[i + 1], orgpath[i + 2]);
-        Direction third = resolvedirection(orgpath[i + 2], orgpath[i + 3]);
-        ShapeType type = ushapes[(int)first][(int)second][(int)third];
-        if(type != ShapeType::End) {
-            path.push_back(orgpath[i + 1]);
-            for(std::size_t j = i + 1; j < orgpath.size(); j++) {
-                orgpath[j] += shiftamounts[(int)type];
-            }
+    for(auto current = orgpath.begin(); current != orgpath.end(); ++current) {
+        auto next = current + 1;
+        auto afternext = current + 2;
+        path.push_back(*current);
+        if(std::distance(current, orgpath.end()) <= stepsize) {
+            continue;
+        }
+        Direction stretchdir = ushapes[(int)resolvedirection(*current, *next)]
+                                      [(int)resolvedirection(*next, *afternext)]
+                                      [(int)resolvedirection(*afternext, *(current + 3))];
+        if(stretchdir != Direction::End) {
+            Point shift = shiftamounts[(int)stretchdir];
+            static const std::unordered_map<Direction, std::function<bool(Point, Point)>> shiftcheckers = {
+                {Direction::East, [] (Point current, Point point) {return point.X > current.X;}},
+                {Direction::West, [] (Point current, Point point) {return point.X < current.X;}},
+                {Direction::North, [] (Point current, Point point) {return point.Y < current.Y;}},
+                {Direction::South, [] (Point current, Point point) {return point.Y > current.Y;}}
+            };
+            using Iter = std::vector<Point>::iterator;
+            const auto shifter = [stretchdir, current] (Iter start, Iter end, Point shift) {
+                for(auto it = start; it != end; ++it) {
+                    if(executeperdir(stretchdir, shiftcheckers, *current, *it)) {
+                        *it += shift;
+                    }
+                }
+            };
+            // TODO: shifting will leave gaps, fill them!
+            shifter(path.begin(), path.end(), shift); // shift backwards
+            shifter(afternext, orgpath.end(), shift); // shift forward
         }
     }
-    return path;
+    return normalizepath(path);
 }
 
 Point RecursiveBacktracker::getneighbortowards(Point coord, Direction dir) {
@@ -127,7 +180,7 @@ Point RecursiveBacktracker::getneighbortowards(Point coord, Direction dir) {
         {Direction::South, [coord] {return Point(coord.X, coord.Y + 1);}},
         {Direction::North, [coord] {return Point(coord.X, coord.Y - 1);}}
     };
-    return RecursiveBacktracker::executeperdir(dir, fns);
+    return executeperdir(dir, fns);
 }
 
 Direction RecursiveBacktracker::getopposingdir(Direction dir) {
@@ -166,7 +219,7 @@ bool RecursiveBacktracker::checkbounds(Point coord, Direction dir) const {
         {Direction::South, [coord, this] {return coord.Y < size.Height - 1;}},
         {Direction::North, [coord] {return coord.Y > 0;}}
     };
-    return RecursiveBacktracker::executeperdir(dir, fns);
+    return executeperdir(dir, fns);
 }
 
 void RecursiveBacktracker::removewall(Cell& current, Cell& neighbor)
@@ -190,7 +243,11 @@ std::pair<Point, Point> RecursiveBacktracker::genstartandend() {
         {Direction::North, [this] {return Point(std::rand() % size.Width, 0);}}
     };
 
-    return {executeperdir(startedge, coordgenerators), executeperdir(endedge, coordgenerators)};
+    Point enterance = executeperdir(startedge, coordgenerators);
+    ASSERT(enterance.X >= 0 && enterance.Y >= 0, "invalid coordinate");
+    Point exit = executeperdir(endedge, coordgenerators);
+    ASSERT(exit.X >= 0 && exit.Y >= 0, "invalid coordinate");
+    return {enterance, exit};
 }
 
 std::vector<Point> RecursiveBacktracker::findpassableneighbors(const Cell& current) const {
@@ -226,6 +283,7 @@ Maze RecursiveBacktracker::Generate(Size size) {
     }
     std::vector<Cell> maze;
     for(const auto& cell: cells) {
+        ASSERT(cell.cell.coord.X >= 0 &&cell.cell.coord.Y >= 0, "invalid coordinate");
         maze.push_back(cell.cell);
     }
     return {genstartandend(), maze};

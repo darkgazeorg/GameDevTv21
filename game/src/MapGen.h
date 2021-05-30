@@ -33,31 +33,6 @@ class RecursiveBacktracker {
     static Point getneighbortowards(Point coordinate, Direction dir);
     static Direction getopposingdir(Direction dir);
 
-    template<typename Func, typename... Args>
-    static auto executeperdir(
-        Direction dir,
-        const std::unordered_map<Direction, Func>& funcs,
-        Args... args) {
-        switch(dir) {
-        case Direction::East:
-            return funcs.at(Direction::East)(args...);
-            break;
-        case Direction::West:
-            return funcs.at(Direction::West)(args...);
-            break;
-        case Direction::South:
-            return funcs.at(Direction::South)(args...);
-            break;
-        case Direction::North:
-            return funcs.at(Direction::North)(args...);
-            break;
-        default:
-            Gorgon::Utils::ASSERT_FALSE("Unknown direction");
-        }
-        typename std::result_of<Func(Args...)>::type ret{};
-        return ret;
-    }
-
 public:
     Maze Generate(Size size);
     std::vector<Point> Solve(const Maze& maze, Size size);
