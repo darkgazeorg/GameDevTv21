@@ -69,11 +69,10 @@ Map::Map(std::default_random_engine &random)
     PathChecker checker({checklength});
     Size mazesize(7, 5);
     RecursiveBacktracker mazegen;
-    std::vector<Point> solution;
 
     std::vector<std::vector<Point>> solutions;
     while(solutions.size() < 100) {
-        solution = mazegen.Solve(mazegen.Generate(mazesize), mazesize);
+        auto solution = mazegen.Solve(mazegen.Generate(mazesize), mazesize);
         if(checker.Check(solution)) {
             solutions.push_back(solution);
         }
@@ -84,9 +83,16 @@ Map::Map(std::default_random_engine &random)
         return std::abs((int)lhs.size() - 23) < std::abs((int)rhs.size() - 23);
     });
 
-    solutions[0] = StretchUTurns(solutions[0]);
+    for(auto p: solutions[0]) {
+        std::cout << p << std::endl;
+    }
+    std::cout << "---------------------------\n";
+    auto solution = StretchUTurns(solutions[0]);
+    for(auto p: solution) {
+        std::cout << p << std::endl;
+    }
     Gorgon::Geometry::PointList<Point> points;
-    for(auto point : solutions[0]) {
+    for(auto point : solution) {
         points.Push({point.X * 3+3, point.Y * 3+3});
     }
     
