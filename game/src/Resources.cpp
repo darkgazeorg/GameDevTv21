@@ -6,6 +6,7 @@
 #include <Gorgon/String/Tokenizer.h>
 
 #include "Tower.h"
+#include "ImProc.h"
 
 R::File resources;
 
@@ -80,21 +81,22 @@ bool LoadResources() {
             tower.target            = (TargetType)data.Get<int>(14);
             tower.effectiveagainst  = (EnemyType)data.Get<int>(15);
             tower.effectivemultiplier= data.Get<float>(16);
+            tower.displaybullets    = data.Get<int>(24);
             auto str = data.Get<std::string>(19);
             if(!str.empty())
-                tower.base          = &imagesfold.Get<R::AnimationStorage>(str);
+                tower.base          = &imagesfold.Get<R::Image>(str);
             str = data.Get<std::string>(20);
             if(!str.empty())
-                tower.top           = &imagesfold.Get<R::AnimationStorage>(str);
+                tower.top           = CreateRotations(imagesfold.Get<R::Image>(str), 32);
             str = data.Get<std::string>(21);
             if(!str.empty())
-                tower.effect        = &imagesfold.Get<R::AnimationStorage>(str);
+                tower.effect        = &imagesfold.Get<R::Image>(str);
             str = data.Get<std::string>(22);
             if(!str.empty())
-                tower.bullet        = &imagesfold.Get<R::AnimationStorage>(str);
+                tower.bullet        = CreateRotations(imagesfold.Get<R::Image>(str), 32);
             str = data.Get<std::string>(23);
             if(!str.empty())
-                tower.bulleteffect  = &imagesfold.Get<R::AnimationStorage>(str);
+                tower.bulleteffect  = &imagesfold.Get<R::Image>(str);
             
             str = data.Get<std::string>(18);
             std::stringstream ss(str);

@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <Gorgon/Graphics/Bitmap.h>
+#include <Gorgon/Graphics/Layer.h>
 #include <Gorgon/Resource/AnimationStorage.h>
 
 #include "Types.h"
@@ -12,6 +13,14 @@ class TowerType {
 public:
     
     static std::map<std::string, TowerType> Towers;
+    
+    void Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight);
+    
+    void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
+    
+    bool IsPlacable() const {
+        return placable;
+    }
     
 private:
     std::string id;
@@ -35,9 +44,9 @@ private:
     float effectivemultiplier;
     std::vector<Pointf> bulletlocations;
     bool displaybullets;
-    R::AnimationStorage *base = nullptr;
-    R::AnimationStorage *top = nullptr;
-    R::AnimationStorage *effect = nullptr;
-    R::AnimationStorage *bullet = nullptr;
-    R::AnimationStorage *bulleteffect = nullptr;
+    Gorgon::Graphics::Bitmap *base = nullptr;
+    Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> top;
+    Gorgon::Graphics::Bitmap *effect = nullptr;
+    Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> bullet;
+    Gorgon::Graphics::Bitmap *bulleteffect = nullptr;
 };

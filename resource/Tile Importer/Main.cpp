@@ -154,6 +154,7 @@ void doimport(int scale) {
                     int ea = 0; //effective against
                     float em = 0.0; //effective multiplier
                     float bacc = 0.0; //bullet acceleration
+                    int displaybullet = 0;
                     std::string points = "";
                     std::string base = "";
                     std::string top = "";
@@ -262,6 +263,10 @@ void doimport(int scale) {
                         std::getline(dataf, line);
                         if(!line.empty())
                             projectileEffect  = line;
+                        
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            displaybullet = String::To<int>(line);
                     }
                     
                     data.SetName(name);
@@ -289,6 +294,7 @@ void doimport(int scale) {
                     data.Append("effect", effect);
                     data.Append("projectile", projectile);
                     data.Append("projectileEffect", projectileEffect);
+                    data.Append("displaybullet", displaybullet);
                     
                     fold.Add(data);
                     

@@ -43,3 +43,4 @@ Text file contains integer, float and string values that correlate to the follow
 22- Effect Image string
 23- projectile image string
 24- projectile effect image string
+25- Display bullets

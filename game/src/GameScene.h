@@ -8,6 +8,7 @@
 #include <Gorgon/Resource/Image.h>
 #include "ImProc.h"
 #include "Resources.h"
+#include "Tower.h"
 
 extern R::File resources;
 
@@ -34,6 +35,13 @@ private:
     virtual void activate() override {
         graphics.Clear();
         graphics.Draw(Widgets::Registry::Active().Backcolor(Gorgon::Graphics::Color::Container));
+        int y = maplayer.GetTop();
+        for(auto &tower : TowerType::Towers) {
+            if(tower.second.IsPlacable()) {
+                tower.second.Print(graphics, {0, y}, maplayer.GetLeft() - 4, false);
+                y += 68;
+            }
+        }
     }
 
     virtual void doframe(unsigned delta) override {
