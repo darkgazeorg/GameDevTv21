@@ -87,7 +87,7 @@ Map::Map(std::default_random_engine &random)
     solutions[0] = StretchUTurns(solutions[0]);
     Gorgon::Geometry::PointList<Point> points;
     for(auto point : solutions[0]) {
-        points.Push({point.X * 3+7, point.Y * 3+7});
+        points.Push({point.X * 3+3, point.Y * 3+3});
     }
     
     //flatten point list
