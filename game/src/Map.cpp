@@ -1,15 +1,32 @@
+#include "ImProc.h"
 #include "Map.h"
 #include "MapGen.h"
-#include "Types.h"
-#include <Gorgon/Geometry/PointList.h>
-#include <Gorgon/CGI/Line.h>
-#include <algorithm>
-#include <cstdint>
-#include <cmath>
-#include <cstdlib>
-#include <cassert>
-#include "ImProc.h"
 #include "Resources.h"
+#include "Types.h"
+
+#include <Gorgon/CGI/Line.h>
+#include <Gorgon/Geometry/PointList.h>
+
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <iostream>
+
+namespace {
+    Bounds getbounds(const std::vector<Point>& path) {
+        const auto findminx = [] (const Point& lhs, const Point& rhs) { return lhs.X < rhs.X; };
+        const auto findmaxx = [] (const Point& lhs, const Point& rhs) { return lhs.X > rhs.X; };
+        const auto findminy = [] (const Point& lhs, const Point& rhs) { return lhs.Y < rhs.Y; };
+        const auto findmaxy = [] (const Point& lhs, const Point& rhs) { return lhs.Y > rhs.Y; };
+        int minx = (*std::min_element(path.begin(), path.end(), findminx)).X;
+        int maxx = (*std::min_element(path.begin(), path.end(), findmaxx)).X;
+        int miny = (*std::min_element(path.begin(), path.end(), findminy)).Y;
+        int maxy = (*std::min_element(path.begin(), path.end(), findmaxy)).Y;
+        return Bounds(Point(minx, miny), Point(maxx, maxy));
+    }
+}
 
 Gorgon::Geometry::PointList<Point> points = {
     {1, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {3, 8}, {3, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
@@ -83,19 +100,36 @@ Map::Map(std::default_random_engine &random)
         return std::abs((int)lhs.size() - 23) < std::abs((int)rhs.size() - 23);
     });
 
-    for(auto p: solutions[0]) {
-        std::cout << p << std::endl;
+    constexpr int cellscale = 3;
+    constexpr int pathsztol = 1;
+    int xoffset = 0;
+    int yoffset = 0;
+    std::vector<Point> stretched = solutions[0];;
+    for(const auto& solution: solutions) {
+        stretched = StretchUTurns(solution);
+        Bounds bounds = getbounds(stretched);
+        Size pathsize((bounds.Width() * cellscale), bounds.Height() * cellscale);
+        if(mapsize.Width > pathsize.Width + pathsztol && mapsize.Height > pathsize.Height + pathsztol) {
+            for(auto p: solution) {
+                std::cout << p << std::endl;
+            }
+            std::cout << "---------------------------\n";
+            for(auto p: stretched) {
+                std::cout << p << std::endl;
+            }
+            xoffset = (mapsize.Width - pathsize.Width) / 2;
+            yoffset = (mapsize.Height - pathsize.Height) / 2;
+            std::cout << pathsize << std::endl;
+            std::cout << "x offset: " << xoffset << ", y offset: " << yoffset << std::endl;
+            break;
+        }
     }
-    std::cout << "---------------------------\n";
-    auto solution = StretchUTurns(solutions[0]);
-    for(auto p: solution) {
-        std::cout << p << std::endl;
-    }
+
     Gorgon::Geometry::PointList<Point> points;
-    for(auto point : solution) {
-        points.Push({point.X * 3+3, point.Y * 3+3});
+    for(auto point : stretched) {
+        points.Push({point.X * 3+xoffset, point.Y * 3+yoffset});
     }
-    
+
     //flatten point list
     for(int i=1; i<points.GetSize()-1; i++) {
         if(points[i-1].X == points[i].X && points[i].X == points[i+1].X) {
