@@ -6,6 +6,7 @@
 #include <Gorgon/String/Tokenizer.h>
 
 #include "Tower.h"
+#include "Enemy.h"
 #include "ImProc.h"
 
 R::File resources;
@@ -23,6 +24,7 @@ bool LoadResources() {
     auto &tilesfold = resources.Root().Get<R::Folder>(0);
     auto &imagesfold = resources.Root().Get<R::Folder>(1);
     auto &towersfold = resources.Root().Get<R::Folder>(3);
+    auto &enemiesfold = resources.Root().Get<R::Folder>(4);
     
     for(auto &res : tilesfold) {
         if(res.GetGID() == R::GID::Image) {
@@ -79,7 +81,7 @@ bool LoadResources() {
             tower.range             = data.Get<float>(12);
             tower.placable          = data.Get<int>(13);
             tower.target            = (TargetType)data.Get<int>(14);
-            tower.effectiveagainst  = (EnemyType)data.Get<int>(15);
+            tower.effectiveagainst  = (EnemyClass)data.Get<int>(15);
             tower.effectivemultiplier= data.Get<float>(16);
             tower.displaybullets    = data.Get<int>(24);
             auto str = data.Get<std::string>(19);
@@ -109,6 +111,32 @@ bool LoadResources() {
             for(; tok.IsValid(); tok.Next()) {
                 tower.upgradesto.push_back(*tok);
             }
+        }
+    }
+    
+    
+    for(auto &res : enemiesfold) {
+        if(res.GetGID() == R::GID::Data) {
+            auto &data = dynamic_cast<R::Data&>(res);
+            
+            auto ret = EnemyType::Enemies.insert(std::make_pair(data.GetName(), EnemyType{}));
+            
+            EnemyType &enemy = ret.first->second;
+            
+            enemy.id = ret.first->first;
+            enemy.name = data.Get<std::string>(0);
+            enemy.type = (EnemyClass)data.Get<int>(1);
+            enemy.speed = data.Get<float>(2);
+            enemy.hitpoints = data.Get<int>(3);
+            enemy.armor = data.Get<int>(4);
+            enemy.reactivearmor = data.Get<int>(5);
+            enemy.shield = data.Get<int>(6);
+            enemy.evasion = data.Get<float>(7);
+            enemy.scraps = data.Get<int>(8);
+            enemy.strength = data.Get<int>(9);
+            
+            auto str = data.Get<std::string>(10);
+            enemy.image = CreateRotations(imagesfold.Get<Gorgon::Graphics::Bitmap>(str), 32);
         }
     }
     

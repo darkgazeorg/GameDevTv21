@@ -25,6 +25,8 @@ set(SOURCES
   src/Improc.cpp
   src/Resources.h
   src/Resources.cpp
+  src/Enemy.h
+  src/Enemy.cpp
 )
 
 add_executable(${PNAME} ${SOURCES})

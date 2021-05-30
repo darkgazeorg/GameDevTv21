@@ -1,11 +1,11 @@
-EnemyInfantryL2
+Foot soldier captain
 1
 1.1
-200
-50
-10
-50
-0.5
 15
-50
+0
+1
+1
+0.4
+15
+25
 Infantry02

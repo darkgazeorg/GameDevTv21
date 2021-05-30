@@ -371,6 +371,7 @@ void doimport(int scale) {
                         
                     }
                     
+                    data.SetName(name);
                     data.Append("name", txtname);
                     data.Append("enemytype", enemytype);
                     data.Append("speed", speed);

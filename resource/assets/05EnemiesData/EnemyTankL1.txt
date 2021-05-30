@@ -1,8 +1,8 @@
-EnemyTankL1
+Light armoured vehicle
 1
 1.1
-200
-50
+25
+3
 10
 50
 0.5

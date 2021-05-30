@@ -40,7 +40,7 @@ private:
     float range;
     bool placable;
     TargetType target;
-    EnemyType effectiveagainst;
+    EnemyClass effectiveagainst;
     float effectivemultiplier;
     std::vector<Pointf> bulletlocations;
     bool displaybullets;

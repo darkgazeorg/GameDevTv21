@@ -31,7 +31,7 @@ enum class DamageType {
     Laser
 };
 
-enum class EnemyType {
+enum class EnemyClass {
     Infantry = 1,
     Mechanical = 2,
     MechanicalInfantry = Mechanical | Infantry,
