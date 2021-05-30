@@ -119,11 +119,9 @@ bool LoadResources() {
         if(res.GetGID() == R::GID::Data) {
             auto &data = dynamic_cast<R::Data&>(res);
             
-            auto ret = EnemyType::Enemies.insert(std::make_pair(data.GetName(), EnemyType{}));
+            auto &enemy = EnemyType::Enemies.AddNew();
             
-            EnemyType &enemy = ret.first->second;
-            
-            enemy.id = ret.first->first;
+            enemy.id = data.GetName();
             enemy.name = data.Get<std::string>(0);
             enemy.type = (EnemyClass)data.Get<int>(1);
             enemy.speed = data.Get<float>(2);
@@ -139,6 +137,10 @@ bool LoadResources() {
             enemy.image = CreateRotations(imagesfold.Get<Gorgon::Graphics::Bitmap>(str), 32);
         }
     }
+    
+    EnemyType::Enemies.Sort([](auto &l, auto &r) {
+        return l.strength < r.strength;
+    });
     
     return true;
 }

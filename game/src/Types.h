@@ -34,12 +34,13 @@ enum class DamageType {
 enum class EnemyClass {
     Infantry = 1,
     Mechanical = 2,
-    MechanicalInfantry = Mechanical | Infantry,
+    Flyer = 4,
     Alien = 8,
-    AlienInfantry = Alien | Infantry,
-    MechanicalAlien = Mechanical | Alien,
-    MechanicalAlienInfantry = Mechanical | Infantry | Alien,
 };
+
+inline bool IsFlyer(EnemyClass type) {
+    return int(type) & int(EnemyClass::Flyer);
+}
 
 enum class TargetType {
     Ground = 1,
