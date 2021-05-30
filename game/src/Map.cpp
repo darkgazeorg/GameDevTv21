@@ -2,7 +2,6 @@
 #include "MapGen.h"
 #include "Types.h"
 #include <Gorgon/Geometry/PointList.h>
-#include <Gorgon/Resource/Image.h>
 #include <Gorgon/CGI/Line.h>
 #include <algorithm>
 #include <cstdint>
@@ -10,10 +9,7 @@
 #include <cstdlib>
 #include <cassert>
 #include "ImProc.h"
-
-R::File resources;
-Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
-std::vector<Gorgon::Graphics::TextureImage> tiles;
+#include "Resources.h"
 
 Gorgon::Geometry::PointList<Point> points = {
     {1, 2}, {6, 2}, {6, 4}, {12, 4}, {12, 10}, {6, 10}, {6, 8}, {3, 8}, {3, 16}, {8, 16}, {8, 14}, {18, 14}, {18, 10}
@@ -62,45 +58,10 @@ TileIndex corners[8][3][3] = {
     },
 };
 
-Map::Map(std::default_random_engine &random) {
-    if(resources.Root().GetCount() == 0) {
-        resources.LoadFile("Resources_1x.gor");
-        resources.Prepare();
-        
-        auto &tilesfold = resources.Root().Get<R::Folder>(0);
-        
-        for(auto &res : tilesfold) {
-            if(res.GetGID() == R::GID::Image) {
-                auto &im = dynamic_cast<R::Image&>(res);
-                tilesets.AddNew(im.MoveOutAsBitmap());
-            }
-        }
-    }
-    
-    auto &tileset = tilesets[std::uniform_int_distribution<int>(0, tilesets.GetSize()-1)(random)];
-    auto size = tileset.GetHeight()/3;
-    
-    Gorgon::Geometry::PointList<Point> tilelocations = {
-        {1, 1}, {4, 2}, {3, 2}, //empty, full, single
-        {0, 1}, {2, 1},         //left, right
-        {1, 0}, {1, 2},         //top, bottom,
-        //corners are inverted!
-        {3, 0}, {4, 0},         //topleft, topright
-        {3, 1}, {4, 1},         //bottomleft, bottomright
-        //inner
-        {0, 0}, {2, 0},         //topleft, topright
-        {0, 2}, {2, 2},         //bottomleft, bottomright
-    };
-    
-    Scale(tilelocations, size);
-    
-    std::vector<Gorgon::Geometry::Bounds> tilebounds;
-    for(auto p : tilelocations) {
-        tilebounds.push_back({p, size, size});
-    }
-    tiles = tileset.CreateAtlasImages(tilebounds);
-    
-    mapsize = {41, 29};
+Map::Map(std::default_random_engine &random) 
+    : tileset(tiles[std::uniform_int_distribution<int>(0, ::tilesets.GetSize()-1)(random)])
+{
+    mapsize = {33, 21};
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
@@ -126,9 +87,9 @@ Map::Map(std::default_random_engine &random) {
     solutions[0] = StretchUTurns(solutions[0]);
     Gorgon::Geometry::PointList<Point> points;
     for(auto point : solutions[0]) {
-        points.Push({point.X * 3+8, point.Y * 3+8});
+        points.Push({point.X * 3+7, point.Y * 3+7});
     }
-
+    
     //flatten point list
     for(int i=1; i<points.GetSize()-1; i++) {
         if(points[i-1].X == points[i].X && points[i].X == points[i+1].X) {
@@ -206,14 +167,14 @@ Map::Map(std::default_random_engine &random) {
     if(points[1].X != points[0].X) {
         for(int y=-4; y<=4; y++) {
             paths[y+4].SetStartingPoint(
-                {points[0].X+0.5 - nextdir, points[0].Y + 0.5 + y/4.f*nextdir}
+                {points[0].X+0.5f - nextdir, points[0].Y + 0.5f + y/4.f*nextdir}
             );
         }
     }
     else {
         for(int x=-4; x<=4; x++) {
             paths[x+4].SetStartingPoint(
-                {points[0].X + 0.5 - x/4.f*nextdir, points[0].Y - nextdir + 0.5}
+                {points[0].X + 0.5f - x/4.f*nextdir, points[0].Y - nextdir + 0.5f}
             );
         }
     }
@@ -223,13 +184,13 @@ Map::Map(std::default_random_engine &random) {
         if(cur.X != points[i].X) {
             dir = Gorgon::Sign(points[i].X - cur.X);
             for(int y=-4; y<=4; y++) {
-                paths[y+4].Push({points[i].X+0.5 - 1*dir, points[i].Y + 0.5 + y/4.f*dir});
+                paths[y+4].Push({points[i].X+0.5f - 1*dir, points[i].Y + 0.5f + y/4.f*dir});
             }
         }
         else {
             dir = Gorgon::Sign(points[i].Y - cur.Y);
             for(int x=-4; x<=4; x++) {
-                paths[x+4].Push({points[i].X + 0.5 - x/4.f*dir, points[i].Y + 0.5 - 1*dir});
+                paths[x+4].Push({points[i].X + 0.5f - x/4.f*dir, points[i].Y + 0.5f - 1*dir});
             }
         }
         
@@ -244,16 +205,16 @@ Map::Map(std::default_random_engine &random) {
             if(points[i+1].X != points[i].X) {
                 for(int y=-4; y<=4; y++) {
                     paths[y+4].Push(
-                        {paths[y+4].Get(paths[y+4].GetCount()-1).P3.X, points[i].Y + 0.5 + y/4.f*nextdir},
-                        {points[i].X+0.5 + nextdir, points[i].Y + 0.5 + y/4.f*nextdir}
+                        {paths[y+4].Get(paths[y+4].GetCount()-1).P3.X, points[i].Y + 0.5f + y/4.f*nextdir},
+                        {points[i].X+0.5f + nextdir, points[i].Y + 0.5f + y/4.f*nextdir}
                     );
                 }
             }
             else {
                 for(int x=-4; x<=4; x++) {
                     paths[x+4].Push(
-                        {points[i].X + 0.5 - x/4.f*nextdir, paths[x+4].Get(paths[x+4].GetCount()-1).P3.Y},
-                        {points[i].X + 0.5 - x/4.f*nextdir, points[i].Y + nextdir + 0.5}
+                        {points[i].X + 0.5f - x/4.f*nextdir, paths[x+4].Get(paths[x+4].GetCount()-1).P3.Y},
+                        {points[i].X + 0.5f - x/4.f*nextdir, points[i].Y + nextdir + 0.5f}
                     );
                 }
             }
@@ -266,13 +227,13 @@ Map::Map(std::default_random_engine &random) {
     if(points[last-1].X != points[last].X) {
         dir = Gorgon::Sign(points[last].X - points[last-1].X);
         for(int y=-4; y<=4; y++) {
-            paths[y+4].Push({points[last].X+0.5, points[last].Y + 0.5 + y/4.f*dir});
+            paths[y+4].Push({points[last].X+0.5f, points[last].Y + 0.5f + y/4.f*dir});
         }
     }
     else {
         dir = Gorgon::Sign(points[last].Y - points[last-1].Y);
         for(int x=-4; x<=4; x++) {
-            paths[x+4].Push({points[last].X + 0.5 - x/4.f*dir, points[last].Y+0.5});
+            paths[x+4].Push({points[last].X + 0.5f - x/4.f*dir, points[last].Y+0.5f});
         }
     }
 
@@ -280,13 +241,13 @@ Map::Map(std::default_random_engine &random) {
     debug.Clear();
     
     for(int y=0; y<mapsize.Height; y++) {
-        Gorgon::CGI::DrawLines(debug, {{0, y*tilesize.Height+0.5}, {debug.GetWidth(), y*tilesize.Height+0.5}}, gridsize.Width, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5}));
+        Gorgon::CGI::DrawLines(debug, {{0, y*tilesize.Height+0.5f}, {(float)debug.GetWidth(), y*tilesize.Height+0.5f}}, gridsize.Width, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5f}));
     }
     for(int x=0; x<mapsize.Width; x++) {
-        Gorgon::CGI::DrawLines(debug, {{x*tilesize.Width+0.5, 0}, {x*tilesize.Width+0.5, debug.GetHeight()}}, gridsize.Height, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5}));
+        Gorgon::CGI::DrawLines(debug, {{x*tilesize.Width+0.5f, 0}, {x*tilesize.Width+0.5f, (float)debug.GetHeight()}}, gridsize.Height, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5f}));
     }
     for(auto &path : paths) {
-        Gorgon::CGI::DrawLines(debug, path.Flatten(0.05)*Sizef(tilesize), 0.5, Gorgon::CGI::SolidFill<>({Color::Aqua}));
+        Gorgon::CGI::DrawLines(debug, path.Flatten(0.05f)*Sizef(tilesize), 0.5f, Gorgon::CGI::SolidFill<>({Color::Aqua}));
     }
     
     debug.Prepare();
@@ -296,7 +257,7 @@ void Map::Render(Gorgon::Graphics::Layer &target) {
     Point offset = Point((target.GetTargetSize() - (tilesize * mapsize))/2);
     for(int y=0; y<mapsize.Height; y++) {
         for(int x=0; x<mapsize.Width; x++) {
-            tiles[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
+            tileset[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
         }
     }
     debug.Draw(target, offset);

@@ -2,15 +2,29 @@
 
 #include <string>
 #include <vector>
+#include <Gorgon/Graphics/Bitmap.h>
+#include <Gorgon/Graphics/Layer.h>
+#include <Gorgon/Resource/AnimationStorage.h>
 
 #include "Types.h"
 
 class TowerType {
+    friend bool LoadResources();
 public:
     
+    static std::map<std::string, TowerType> Towers;
+    
+    void Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight);
+    
+    void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
+    
+    bool IsPlacable() const {
+        return placable;
+    }
     
 private:
     std::string id;
+    std::string name;
     int damageperbullet;
     float reloadtime;
     int numberofbullets;
@@ -28,6 +42,11 @@ private:
     TargetType target;
     EnemyType effectiveagainst;
     float effectivemultiplier;
-    std::vector<Point> bulletlocations;
+    std::vector<Pointf> bulletlocations;
     bool displaybullets;
+    Gorgon::Graphics::Bitmap *base = nullptr;
+    Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> top;
+    Gorgon::Graphics::Bitmap *effect = nullptr;
+    Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> bullet;
+    Gorgon::Graphics::Bitmap *bulleteffect = nullptr;
 };
