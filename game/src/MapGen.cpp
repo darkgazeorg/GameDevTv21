@@ -157,20 +157,17 @@ std::vector<Point> StretchUTurns(std::vector<Point> orgpath) {
                 {Direction::North, [] (Point current, Point point) {return point.Y < current.Y;}},
                 {Direction::South, [] (Point current, Point point) {return point.Y > current.Y;}}
             };
-            // TODO: get rid of the code duplication below
+            using Iter = std::vector<Point>::iterator;
+            const auto shifter = [stretchdir, current] (Iter start, Iter end, Point shift) {
+                for(auto it = start; it != end; ++it) {
+                    if(executeperdir(stretchdir, shiftcheckers, *current, *it)) {
+                        *it += shift;
+                    }
+                }
+            };
             // TODO: shifting will leave gaps, fill them!
-            // shift backwards
-            for(auto it = path.begin(); it != path.end(); ++it) {
-                if(executeperdir(stretchdir, shiftcheckers, *current, *it)) {
-                    *it += shift;
-                }
-            }
-            // shift forward
-            for(auto it = afternext; it != orgpath.end(); ++it) {
-                if(executeperdir(stretchdir, shiftcheckers, *current, *it)) {
-                    *it += shift;
-                }
-            }
+            shifter(path.begin(), path.end(), shift); // shift backwards
+            shifter(afternext, orgpath.end(), shift); // shift forward
         }
     }
     return normalizepath(path);
