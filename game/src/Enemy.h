@@ -14,6 +14,10 @@ public:
     
     static Gorgon::Containers::Collection<EnemyType> Enemies;
     
+    void Print(Gorgon::Graphics::Layer &target, Point location, int width, int count = 0);
+    
+    
+    void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
     
 //protected:
     std::string id;
@@ -40,6 +44,8 @@ public:
 
 class Wave {
 public:
+    
+    Wave() { }
     
     Wave(int totalstrength, std::default_random_engine &random);
     

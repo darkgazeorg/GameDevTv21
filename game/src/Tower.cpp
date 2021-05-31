@@ -33,7 +33,7 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     adv.Append(round(damageperbullet / reloadtime*10) / 10);
     adv.LineBreak();
     
-    printer.AdvancedPrint(target, adv, location + Point(68, 4), width);
+    printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
 }
 
 void TowerType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) {

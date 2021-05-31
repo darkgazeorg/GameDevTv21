@@ -6,6 +6,7 @@
 #include "Types.h"
 #include <Gorgon/Widgets/Button.h>
 #include <Gorgon/Widgets/Label.h>
+#include <Gorgon/Widgets/Layerbox.h>
 #include <Gorgon/UI/Organizers/Flow.h>
 #include <Gorgon/Graphics/ScalableObject.h>
 #include <Gorgon/Resource/Image.h>
@@ -20,7 +21,9 @@ class Game : public Gorgon::Scene {
 public:
     Game(Gorgon::SceneManager &parent, Gorgon::SceneID id) : 
         Gorgon::Scene(parent, id, true),
-        topleftpnl(Widgets::Registry::Panel_Blank)
+        topleftpnl(Widgets::Registry::Panel_Blank),
+        towerspnl(Widgets::Registry::Panel_Blank),
+        enemiespnl(Widgets::Registry::Panel_Blank)
     { 
         graphics.Add(maplayer);
         maplayer.Move(Widgets::Registry::Active()[Widgets::Registry::Panel_Left].GetHeight(), Widgets::Registry::Active()[Widgets::Registry::Panel_Top].GetHeight());
@@ -40,7 +43,7 @@ public:
         topleftpnl.SetWidthInUnits(20);
         
         nextwave.Text = "Next wave";
-        nextwave.Disable();
+        nextwave.ClickEvent.Register(*this, &Game::PrepareNextLevel);
         
         scrapicon = Scale(resources.Root().Get<R::Folder>(2).Get<R::Image>("Scraps"), 
                           Size{Widgets::Registry::Active().GetEmSize()}
@@ -50,6 +53,24 @@ public:
         
         nextwave.SetHeight(ui.GetUnitWidth());
         org << nextwave << 1 << " " << scraplbl;
+        
+        ui.Add(towerspnl);
+        towerspnl.SetHeight((ui.GetHeight() - maplayer.GetTop() - ui.GetSpacing())/2);
+        towerspnl.SetWidth(maplayer.GetLeft() - ui.GetSpacing());
+        towerspnl.Move(0, maplayer.GetTop());
+        towerslayer.SetWidth(towerspnl.GetInteriorSize().Width);
+        towerspnl.Add(towerslayer);
+        towerslayer.GetLayer().Add(towergraphics);
+        
+        enemiespnl.SetHeight((ui.GetHeight() - maplayer.GetTop() - ui.GetSpacing())/2);
+        enemiespnl.SetWidth(maplayer.GetLeft() - ui.GetSpacing());
+        enemiespnl.Move(0, towerspnl.GetHeight() + ui.GetSpacing() + maplayer.GetTop());
+        enemieslayer.SetWidth(towerspnl.GetInteriorSize().Width);
+        ui.Add(enemiespnl);
+        enemiespnl.Add(enemieslayer);
+        enemieslayer.GetLayer().Add(enemygraphics);
+        
+        Reset();
     }
     
     ~Game() {
@@ -59,24 +80,46 @@ public:
         scrap = 50;
         delete map;
         map = new Map(random);
+        PrepareNextLevel();
+    }
+    
+    void PrepareNextLevel() {
+        curstr *= 1.5;
+        wave = Wave(curstr, random);
+        drawenemies();
     }
 
 private:
     virtual void activate() override {
         graphics.Clear();
         graphics.Draw(Widgets::Registry::Active().Backcolor(Gorgon::Graphics::Color::Container));
-        int y = maplayer.GetTop();
+        
+        quit.Move(ui.GetWidth() - quit.GetWidth() - ui.GetSpacing(), ui.GetSpacing());
+        
+        drawtowers();
+    }
+    
+    void drawtowers() {
+        towergraphics.Clear();
+        int y = 0;
         for(auto &tower : TowerType::Towers) {
             if(tower.second.IsPlacable()) {
-                tower.second.Print(graphics, {0, y}, maplayer.GetLeft() - 4, false);
+                towerslayer.SetHeight(y + 68);
+                
+                tower.second.Print(towergraphics, {0, y}, towergraphics.GetEffectiveBounds().Width(), false);
                 y += 68;
             }
         }
-        quit.Move(ui.GetWidth() - quit.GetWidth() - ui.GetSpacing(), ui.GetSpacing());
-        
-        Wave w(800, random);
-        for(auto &g : w.Enemies) {
-            std::cout << g.enemy->name << " x" << g.count << std::endl;
+    }
+    
+    void drawenemies() {
+        enemygraphics.Clear();
+        int y = 0;
+        for(auto &g : wave.Enemies) {
+            enemieslayer.SetHeight(y + 80);
+            
+            g.enemy->Print(enemygraphics, {0, y}, towergraphics.GetEffectiveBounds().Width(), g.count);
+            y += 80;
         }
     }
 
@@ -101,14 +144,21 @@ private:
     
     bool inithack = LoadResources();
     
-    Gorgon::Graphics::Layer maplayer;
-    Map *map = new Map(random);
+    Gorgon::Graphics::Layer maplayer, towergraphics, enemygraphics;
+    Map *map = nullptr;
     
     int scrap = 50;
+    int curstr = 67; //this will be multiplied with 1.5 to get 100 for the first level
     
     Widgets::Panel topleftpnl;
     Widgets::Button quit, nextwave;
     Widgets::Label scraplbl;
+    Widgets::Layerbox towerslayer;
+    Widgets::Layerbox enemieslayer;
+    Widgets::Panel towerspnl;
+    Widgets::Panel enemiespnl;
     
     Gorgon::Graphics::Bitmap scrapicon;
+    
+    Wave wave;
 };

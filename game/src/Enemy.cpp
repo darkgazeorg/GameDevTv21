@@ -1,6 +1,64 @@
 #include "Enemy.h"
+#include <Gorgon/Widgets/Registry.h>
+#include <Gorgon/String/AdvancedTextBuilder.h>
 
 Gorgon::Containers::Collection<EnemyType> EnemyType::Enemies;
+
+
+const Size EnemySize = {64, 64};
+
+void EnemyType::Print(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point location, int width, int count) {
+    auto &reg = Gorgon::Widgets::Registry::Active();
+    auto &printer = reg.Printer();
+    
+    RenderIcon(target, location);
+    
+    Gorgon::String::AdvancedTextBuilder adv;
+    adv.UseHeader(Gorgon::Graphics::HeaderLevel::H3);
+    adv.Append(name);
+    if(count) {
+        adv.UseBoldFont();
+        adv.Append(" x" + Gorgon::String::From(count));
+    }
+    adv.Append("\n");
+    adv.UseBoldFont();
+    adv.SetTabWidth(0, 170);
+    adv.Append("HP \t\t");
+    adv.UseDefaultFont();
+    adv.Append(hitpoints);
+    adv.UseBoldFont();
+    adv.LineBreak();
+    adv.Append("Armor\t");
+    adv.UseDefaultFont();
+    adv.Append(armor);
+    adv.Append("/");
+    adv.Append(reactivearmor);
+    adv.Append("/");
+    adv.Append(shield);
+    
+    printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
+}
+
+
+void EnemyType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) {
+    if(!image.GetCount())
+        return;
+    
+    auto imsize = image[0].GetSize();
+    
+    if(imsize.Width > EnemySize.Width || imsize.Height > EnemySize.Height) {
+        float factor;
+        if((float)imsize.Width/EnemySize.Width > (float)imsize.Height/EnemySize.Height)
+            factor = (float)EnemySize.Width / imsize.Width;
+        else 
+            factor = (float)EnemySize.Height / imsize.Height;
+        
+        image[0].DrawStretched(target, location + Point(EnemySize - imsize*factor)/2, imsize * factor);
+    }
+    else {
+        image[0].Draw(target, location + Point(EnemySize - imsize)/2);
+    }
+}
 
 float randfloat(std::default_random_engine &random, float min = 0, float max = 1) {
     return std::uniform_real_distribution<float>(min, max)(random);
@@ -50,11 +108,11 @@ Wave::Wave(int ts, std::default_random_engine &random) {
         do {
             enemy = &EnemyType::Enemies[randint(random, 0, EnemyType::Enemies.GetSize() - soloenemies.GetSize() - 1)];
         } while(
-            enemy->strength != minstr && (
-            enemy->strength > gts / 3 || 
-            (IsFlyer(enemy->type) && ts < avg * 3) ||
-            enemy->strength < gts / 15
-        ));
+            (enemy->strength != minstr && (
+                enemy->strength > gts / 3 || 
+                (IsFlyer(enemy->type) && ts < avg * 3))) ||
+            (enemy->strength != maxstr && enemy->strength < gts / 15)
+        );
         
         int count = int(std::round(((float)gts/enemy->strength)));
         Enemies.push_back({enemy, count, randfloat(random, 1.0f, 5.0f)});

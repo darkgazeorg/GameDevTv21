@@ -82,7 +82,7 @@ Map::Map(std::default_random_engine &random)
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);
 
-    auto checklength = [] (const std::vector<Point>& path) { return path.size() > 15 && path.size() <= 30; };
+    auto checklength = [] (const std::vector<Point>& path) { return path.size() > 8 && path.size() <= 30; };
     PathChecker checker({checklength});
     Size mazesize(7, 5);
     RecursiveBacktracker mazegen;
@@ -95,35 +95,38 @@ Map::Map(std::default_random_engine &random)
         }
     }
 
-    std::sort(solutions.begin(), solutions.end(), [] (const std::vector<Point>& lhs,
-                                                      const std::vector<Point>& rhs) {
-        return std::abs((int)lhs.size() - 23) < std::abs((int)rhs.size() - 23);
-    });
-
     constexpr int cellscale = 3;
     constexpr int pathsztol = 1;
     int xoffset = 0;
     int yoffset = 0;
-    std::vector<Point> stretched = solutions[0];;
-    for(const auto& solution: solutions) {
+    std::vector<Point> stretched = solutions[0];
+    std::vector<std::vector<Point>> newsolutions;
+    std::vector<std::pair<int, int>> lengths;
+    int ind = 0;
+    for(auto& solution: solutions) {
         stretched = StretchUTurns(solution);
         Bounds bounds = getbounds(stretched);
         Size pathsize((bounds.Width() * cellscale), bounds.Height() * cellscale);
         if(mapsize.Width > pathsize.Width + pathsztol && mapsize.Height > pathsize.Height + pathsztol) {
-            for(auto p: solution) {
-                std::cout << p << std::endl;
+            newsolutions.push_back(stretched);
+            int len = 0;
+            for(int i=1; i<stretched.size(); i++) {
+                len += stretched[i].ManhattanDistance(stretched[i-1]);
             }
-            std::cout << "---------------------------\n";
-            for(auto p: stretched) {
-                std::cout << p << std::endl;
-            }
-            xoffset = (mapsize.Width - pathsize.Width) / 2;
-            yoffset = (mapsize.Height - pathsize.Height) / 2;
-            std::cout << pathsize << std::endl;
-            std::cout << "x offset: " << xoffset << ", y offset: " << yoffset << std::endl;
-            break;
+            lengths.push_back({ind, len});
+            ind++;
         }
     }
+
+    std::sort(lengths.begin(), lengths.end(), [] (auto &l, auto &r) {
+        return std::abs(l.second - 30) < std::abs(r.second - 30);
+    });
+    
+    stretched = newsolutions[lengths[0].first];
+    Bounds bounds = getbounds(stretched);
+    Size pathsize((bounds.Width() * cellscale), bounds.Height() * cellscale);
+    xoffset = (mapsize.Width - pathsize.Width) / 2;
+    yoffset = (mapsize.Height - pathsize.Height) / 2;
 
     Gorgon::Geometry::PointList<Point> points;
     for(auto point : stretched) {
@@ -191,6 +194,13 @@ Map::Map(std::default_random_engine &random)
         cur = points[i];
         pdir = dir;
     }
+    
+    int total = 0;
+    for(int i=0; i<mapsize.Area(); i++) {
+        total += map[i] != 0;
+    }
+    
+    std::cout << "Path area: " << total << std::endl;
     
     //create paths
     
