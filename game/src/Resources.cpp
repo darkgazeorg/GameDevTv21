@@ -13,6 +13,7 @@ R::File resources;
 
 Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
 std::vector<std::vector<Gorgon::Graphics::TextureImage>> tiles;
+Gorgon::Graphics::Bitmap upgrade;
 
 bool LoadResources() {
     if(resources.Root().GetCount() != 0)
@@ -141,6 +142,8 @@ bool LoadResources() {
     EnemyType::Enemies.Sort([](auto &l, auto &r) {
         return l.strength < r.strength;
     });
+    
+    upgrade = resources.Root().Get<R::Folder>(2).Get<R::Image>("Upgrade").MoveOutAsBitmap();
     
     return true;
 }

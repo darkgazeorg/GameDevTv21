@@ -77,7 +77,9 @@ public:
         base(&enemy),
         groupind(groupind),
         path(&path)
-    { }
+    { 
+        hpleft = base->hitpoints;
+    }
     
     //offset is the offset of the map
     void Render(Gorgon::Graphics::Layer &target, Point offset, Size tilesize);
@@ -91,4 +93,5 @@ private:
     const Gorgon::Geometry::PointList<> *path;
     int locationpoint   = 0;
     float offsetfrompoint = 0;
+    float hpleft;
 };
