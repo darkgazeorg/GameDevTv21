@@ -1,5 +1,7 @@
 #include "Tower.h"
+#include "Resources.h"
 #include <Gorgon/Widgets/Registry.h>
+#include <Gorgon/Resource/Image.h>
 #include <Gorgon/String/AdvancedTextBuilder.h>
 
 const Size TowerSize = {64, 64};
@@ -36,7 +38,7 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
         adv.UseDefaultColor();
     adv.Append("DPS\t");
     adv.UseDefaultFont();
-    adv.Append(round(damageperbullet / reloadtime*10) / 10);
+    adv.Append(round(numberofbullets * damageperbullet / reloadtime*10) / 10);
     adv.LineBreak();
     
     printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
@@ -51,10 +53,49 @@ void TowerType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) {
     if(top.GetCount())
         top[0].Draw(target, location + Point(TowerSize - top[0].GetSize())/2);
     
-    if(displaybullets) {
+    if(displaybullets && bullet.GetCount()) {
         for(auto loc : bulletlocations) {
             Scale(loc, TowerSize);
             bullet[0].Draw(target, location + loc - Point(bullet[0].GetSize()/2));
         }
     }
 }
+
+void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offset, Gorgon::Geometry::Size tilesize) {
+    if(construction) {
+        upgrade.DrawStretched(target, location * tilesize + offset, tilesize);
+    }
+    else {
+        if(base->base) {
+            auto sz = base->base->GetSize() * tilesize / TowerSize;
+            base->base->DrawStretched(target, location * tilesize + offset, sz);
+        }
+        
+        if(base->top.GetCount()) {
+            auto sz = base->top[angle].GetSize() * tilesize / TowerSize;
+            base->top[angle].DrawStretched(target, location * tilesize + offset, sz);
+        }
+        
+        if(base->displaybullets && base->bullet.GetCount()) {
+            int ind = 0;
+            for(auto loc : base->bulletlocations) {
+                if(ind == currentbullets)
+                    break;
+                
+                Scale(loc, tilesize);
+                auto sz = base->bullet[angle].GetSize() * tilesize / TowerSize;
+                base->bullet[angle].DrawStretched(target, location * tilesize + loc + offset - Point(sz/2), sz);
+            }
+        }
+    }
+}
+
+void Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
+    if(construction) {
+        if(construction > delta)
+            construction -= delta;
+        else
+            construction = 0;
+    }
+}
+

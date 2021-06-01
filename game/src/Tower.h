@@ -8,8 +8,11 @@
 
 #include "Types.h"
 
+class Enemy;
+
 class TowerType {
     friend bool LoadResources();
+    friend class Tower;
 public:
     
     static std::map<std::string, TowerType> Towers;
@@ -53,4 +56,35 @@ private:
     Gorgon::Graphics::Bitmap *effect = nullptr;
     Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> bullet;
     Gorgon::Graphics::Bitmap *bulleteffect = nullptr;
+};
+
+class Bullet {
+public:
+    long int target;
+    Pointf location;
+};
+
+class Tower {
+public:
+    Tower(const TowerType &base, Point location, bool instant) : 
+        base(&base),
+        location(location)
+    {
+        currentbullets = base.numberofbullets;
+        if(!instant)
+            construction   = std::min(std::max((int)std::round(base.cost * 100 + log(base.cost)*1000), 5000), 30000);
+    }
+    
+    void Render(Gorgon::Graphics::Layer &target, Point offset, Size tilesize);
+    
+    void Progress(unsigned delta, std::map<long int, Enemy> &enemies);
+    
+private:
+    const TowerType *base;
+    Point  location;
+    long int tracktarget = -1;
+    int currentbullets;
+    std::vector<Bullet> flyingbullets;
+    int angle = 0;
+    int construction = 0;
 };

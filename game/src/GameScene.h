@@ -95,6 +95,10 @@ public:
         delete map;
         map = new Map(random);
         PrepareNextLevel();
+        enemyind = 0;
+        auto t = TowerType::Towers.begin();
+        std::advance(t, 2);
+        twr = new Tower(t->second, {4, 4}, false);
     }
     
     void PrepareNextLevel() {
@@ -150,40 +154,44 @@ private:
         
         //delta *= 10;
 
+        twr->Progress(delta, enemies);
         
         if(levelinprogress) {
-            for(int i=0; i<enemies.size(); i++) {
-                auto &enemy = enemies[i];
+            std::vector<long int> enemiestodel;
+            for(auto &p : enemies) {
+                auto &enemy = p.second;
                 auto ret = enemy.Progress(delta);
                 
                 if(ret > 0) {
                     health -= ret/5;
-                    enemies.erase(enemies.begin()+i);
-                    i--;
+                    enemiestodel.push_back(p.first);
                 }
                 
                 if(health <= 0)
                     parent->Quit(); //for now
             }
             
+            for(auto ind : enemiestodel)
+                enemies.erase(ind);
+            
             if(!wave.Enemies.empty() && delayenemies < delta) {
                 auto &grp = wave.Enemies[0];
                 int &cnt = grp.count;
                 if(grp.inrow == 3 && cnt >= 3) {
-                    enemies.emplace_back(*grp.enemy, 0, map->Paths[1]);
-                    enemies.emplace_back(*grp.enemy, 0, map->Paths[4]);
-                    enemies.emplace_back(*grp.enemy, 0, map->Paths[7]);
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[1]});
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[4]});
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[7]});
                     
                     cnt -= 3;
                 }
                 else if(grp.inrow == 2 && cnt >= 2) {
-                    enemies.emplace_back(*grp.enemy, 0, map->Paths[2]);
-                    enemies.emplace_back(*grp.enemy, 0, map->Paths[6]);
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[2]});
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[6]});
                     
                     cnt -= 2;
                 }
                 else {
-                    enemies.emplace_back(*grp.enemy, 0, map->Paths[rint(grp.enemy->GetSize().Width-1, 9-grp.enemy->GetSize().Width)]);
+                    enemies.emplace(enemyind, Enemy{*grp.enemy, 0, map->Paths[rint(grp.enemy->GetSize().Width-1, 9-grp.enemy->GetSize().Width)]});
                     cnt--;
                 }
                 
@@ -214,7 +222,9 @@ private:
         
         gamelayer.Clear();
         for(auto &enemy : enemies)
-            enemy.Render(gamelayer, map->offset, {48, 48});
+            enemy.second.Render(gamelayer, map->offset, {48, 48});
+        
+        twr->Render(gamelayer, map->offset, {48, 48});
     }
 
     virtual bool RequiresKeyInput() const override {
@@ -249,5 +259,7 @@ private:
     Gorgon::Graphics::Bitmap scrapicon, healthicon;
     
     Wave wave;
-    std::vector<Enemy> enemies;
+    std::map<long int, Enemy> enemies;
+    long int enemyind;
+    Tower *twr;
 };
