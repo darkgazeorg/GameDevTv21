@@ -15,7 +15,7 @@
 #include <iostream>
 
 namespace {
-    Bounds getbounds(const std::vector<Point>& path) {
+    Size getsize(const std::vector<Point>& path) {
         const auto findminx = [] (const Point& lhs, const Point& rhs) { return lhs.X < rhs.X; };
         const auto findmaxx = [] (const Point& lhs, const Point& rhs) { return lhs.X > rhs.X; };
         const auto findminy = [] (const Point& lhs, const Point& rhs) { return lhs.Y < rhs.Y; };
@@ -24,7 +24,7 @@ namespace {
         int maxx = (*std::min_element(path.begin(), path.end(), findmaxx)).X;
         int miny = (*std::min_element(path.begin(), path.end(), findminy)).Y;
         int maxy = (*std::min_element(path.begin(), path.end(), findmaxy)).Y;
-        return Bounds(Point(minx, miny), Point(maxx, maxy));
+        return Size(maxx - minx + 1, maxy - miny + 1);
     }
 }
 
@@ -96,22 +96,19 @@ Map::Map(std::default_random_engine &random)
     }
 
     constexpr int cellscale = 3;
-    constexpr int pathsztol = 1;
     int xoffset = 0;
     int yoffset = 0;
-    std::vector<Point> stretched = solutions[0];
     std::vector<std::vector<Point>> newsolutions;
     std::vector<std::pair<int, int>> lengths;
     int ind = 0;
     for(auto& solution: solutions) {
-        stretched = StretchUTurns(solution);
-        Bounds bounds = getbounds(stretched);
-        Size pathsize((bounds.Width() * cellscale), bounds.Height() * cellscale);
-        if(mapsize.Width > pathsize.Width + pathsztol && mapsize.Height > pathsize.Height + pathsztol) {
-            newsolutions.push_back(stretched);
+        auto newsol = StretchUTurns(solution);
+        Size pathsize(getsize(newsol) * cellscale);
+        if(mapsize.Width > pathsize.Width && mapsize.Height > pathsize.Height) {
+            newsolutions.push_back(newsol);
             int len = 0;
-            for(int i=1; i<stretched.size(); i++) {
-                len += stretched[i].ManhattanDistance(stretched[i-1]);
+            for(int i=1; i<newsol.size(); i++) {
+                len += newsol[i].ManhattanDistance(newsol[i-1]);
             }
             lengths.push_back({ind, len});
             ind++;
@@ -121,16 +118,14 @@ Map::Map(std::default_random_engine &random)
     std::sort(lengths.begin(), lengths.end(), [] (auto &l, auto &r) {
         return std::abs(l.second - 30) < std::abs(r.second - 30);
     });
-    
-    stretched = newsolutions[lengths[0].first];
-    Bounds bounds = getbounds(stretched);
-    Size pathsize((bounds.Width() * cellscale), bounds.Height() * cellscale);
-    xoffset = (mapsize.Width - pathsize.Width) / 2;
-    yoffset = (mapsize.Height - pathsize.Height) / 2;
 
+    auto solution = newsolutions[lengths[0].first];
+    Size pathsize(getsize(solution) * cellscale);
+    xoffset = (mapsize.Width - pathsize.Width) / 2 + 1;
+    yoffset = (mapsize.Height - pathsize.Height) / 2 + 1;
     Gorgon::Geometry::PointList<Point> points;
-    for(auto point : stretched) {
-        points.Push({point.X * 3+xoffset, point.Y * 3+yoffset});
+    for(auto point : solution) {
+        points.Push({point.X * cellscale + xoffset, point.Y * cellscale + yoffset});
     }
 
     //flatten point list
