@@ -51,8 +51,16 @@ public:
         scraplbl.SetIcon(scrapicon);
         scraplbl.Text = Gorgon::String::From(scrap);
         
+        healthicon = Scale(resources.Root().Get<R::Folder>(2).Get<R::Image>("Health"), 
+                          Size{Widgets::Registry::Active().GetEmSize()}
+        );
+        healthlbl.SetIcon(healthicon);
+        healthlbl.Text = Gorgon::String::From(health);
+        
+        
+        
         nextwave.SetHeight(ui.GetUnitWidth());
-        org << nextwave << 1 << " " << scraplbl;
+        org << nextwave << 1 << " " << scraplbl << 1 << " " << healthlbl;
         
         ui.Add(towerspnl);
         towerspnl.SetHeight((ui.GetHeight() - maplayer.GetTop() - ui.GetSpacing())/2);
@@ -134,7 +142,16 @@ private:
 
     virtual void doframe(unsigned delta) override {
         scraplbl.Text = Gorgon::String::From(scrap);
-        enemy->Progress(delta);
+        healthlbl.Text = Gorgon::String::From(health);
+        
+        if(enemy) {
+            auto ret = enemy->Progress(delta);
+            
+            if(ret > 0) {
+                enemy = nullptr;
+                health -= ret;
+            }
+        }
     }
 
     virtual void render() override {
@@ -143,7 +160,8 @@ private:
         map->Render(maplayer);
         
         gamelayer.Clear();
-        enemy->Render(gamelayer, map->offset, {48, 48});
+        if(enemy)
+            enemy->Render(gamelayer, map->offset, {48, 48});
     }
 
     virtual bool RequiresKeyInput() const override {
@@ -160,18 +178,19 @@ private:
     Gorgon::Graphics::Layer maplayer, towergraphics, enemygraphics, gamelayer;
     Map *map = nullptr;
     
-    int scrap = 50;
+    int scrap = 30;
+    int health = 100;
     int curstr = 67; //this will be multiplied with 1.5 to get 100 for the first level
     
     Widgets::Panel topleftpnl;
     Widgets::Button quit, nextwave;
-    Widgets::Label scraplbl;
+    Widgets::Label scraplbl, healthlbl;
     Widgets::Layerbox towerslayer;
     Widgets::Layerbox enemieslayer;
     Widgets::Panel towerspnl;
     Widgets::Panel enemiespnl;
     
-    Gorgon::Graphics::Bitmap scrapicon;
+    Gorgon::Graphics::Bitmap scrapicon, healthicon;
     
     Wave wave;
     Enemy *enemy;

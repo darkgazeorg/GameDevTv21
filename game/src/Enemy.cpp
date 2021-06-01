@@ -86,7 +86,7 @@ int Enemy::Progress(int delta) {
     while(movement > 0) {
         if(locationpoint == path.GetCount()-1) {
             //report point loss
-            return base.strength;
+            return std::min(std::max(1, base.strength/10), 10) + int(log(base.strength));
         }
         
         auto total = path.GetLine(locationpoint).End.ManhattanDistance(path[locationpoint]);
