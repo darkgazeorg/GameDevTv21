@@ -4,12 +4,14 @@
 #include <vector>
 #include <Gorgon/Graphics/Bitmap.h>
 #include <Gorgon/Graphics/Layer.h>
+#include <Gorgon/Geometry/PointList.h>
 
 #include "Types.h"
 
 class EnemyType {
     friend bool LoadResources();
     friend class Wave;
+    friend class Enemy;
 public:
     
     static Gorgon::Containers::Collection<EnemyType> Enemies;
@@ -19,7 +21,7 @@ public:
     
     void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
     
-//protected:
+protected:
     std::string id;
     std::string name;
     EnemyClass type;
@@ -32,8 +34,8 @@ public:
     int scraps;
     int strength;
     Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> image;
-
 };
+
 
 class EnemyGroup {
 public:
@@ -53,4 +55,27 @@ public:
     
     std::vector<EnemyGroup> Enemies;
     
+};
+
+
+class Enemy {
+public:
+    Enemy(const EnemyType &enemy, int groupind, const Gorgon::Geometry::PointList<> &path) :
+        base(enemy),
+        groupind(groupind),
+        path(path)
+    { }
+    
+    //offset is the offset of the map
+    void Render(Gorgon::Graphics::Layer &target, Point offset, Size tilesize);
+    
+    //returns the damage if the enemy reaches to the end. Otherwise returns 0.
+    int Progress(int delta);
+    
+private:
+    const EnemyType &base;
+    int groupind;
+    const Gorgon::Geometry::PointList<> &path;
+    int locationpoint   = 0;
+    float offsetfrompoint = 0;
 };

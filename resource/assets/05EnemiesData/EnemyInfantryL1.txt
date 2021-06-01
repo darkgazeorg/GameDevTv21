@@ -1,6 +1,6 @@
 Foot soldier
 1
-1.1
+4
 10
 0
 0

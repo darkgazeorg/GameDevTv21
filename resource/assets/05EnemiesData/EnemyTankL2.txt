@@ -1,6 +1,6 @@
 Armoured vehicle
 1
-1.1
+4
 30
 5
 10

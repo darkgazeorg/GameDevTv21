@@ -48,6 +48,9 @@ public:
         map[x + y*mapsize.Width] = (int)val;
     }
     
+    Point offset = {0, 0};
+    Gorgon::Containers::Collection<Gorgon::Geometry::PointList<>> Paths;
+    
 protected:
     std::vector<int> map;
     Size mapsize;
@@ -55,5 +58,4 @@ protected:
     Size gridsize = {1, 1};
     std::vector<Gorgon::Graphics::TextureImage> &tileset;
     Gorgon::Graphics::Bitmap debug;
-    std::vector<Gorgon::CGI::Curves> paths;
 };

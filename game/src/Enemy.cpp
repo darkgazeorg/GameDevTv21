@@ -68,6 +68,46 @@ int randint(std::default_random_engine &random, int min, int max) {
     return std::uniform_int_distribution<int>(min, max)(random);
 }
 
+void Enemy::Render(Gorgon::Graphics::Layer& target, Point offset, Gorgon::Geometry::Size tilesize) {
+    auto st = path[locationpoint];
+    auto ed = path.GetLine(locationpoint).End;
+    int ind = (int)std::round(atan2(ed.Y - st.Y, ed.X - st.X)/Gorgon::PI*-16+32) % 32;
+    Pointf pnt = (st * (1-offsetfrompoint) + ed * offsetfrompoint);
+    auto sz = base.image[ind].GetSize() * tilesize / EnemySize;
+    pnt = pnt * tilesize;
+    pnt -= Point(sz / 2);
+    
+    base.image[ind].DrawStretched(target, Point(pnt)+offset, sz);
+}
+
+int Enemy::Progress(int delta) {
+    auto movement = base.speed * delta / 1000;
+    
+    while(movement > 0) {
+        if(locationpoint == path.GetCount()-1) {
+            //report point loss
+            return base.strength;
+        }
+        
+        auto total = path.GetLine(locationpoint).End.ManhattanDistance(path[locationpoint]);
+        auto distleft = total * (1- offsetfrompoint);
+        
+        if(distleft < movement) {
+            movement -= total;
+            offsetfrompoint = 0;
+            locationpoint++;
+        }
+        else {
+            distleft -= movement;
+            movement = 0;
+            offsetfrompoint = 1 - distleft / total;
+        }
+    }
+    
+    return 0;
+}
+
+
 Wave::Wave(int ts, std::default_random_engine &random) {
     int minstr = std::numeric_limits<int>::max(), maxstr = 0;
     float avg = 0;

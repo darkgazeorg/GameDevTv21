@@ -43,7 +43,7 @@ public:
         topleftpnl.SetWidthInUnits(20);
         
         nextwave.Text = "Next wave";
-        nextwave.ClickEvent.Register(*this, &Game::PrepareNextLevel);
+        nextwave.ClickEvent.Register(*this, &Game::StartNextLevel);
         
         scrapicon = Scale(resources.Root().Get<R::Folder>(2).Get<R::Image>("Scraps"), 
                           Size{Widgets::Registry::Active().GetEmSize()}
@@ -70,6 +70,10 @@ public:
         enemiespnl.Add(enemieslayer);
         enemieslayer.GetLayer().Add(enemygraphics);
         
+        graphics.Add(gamelayer);
+        gamelayer.Move(maplayer.GetLocation());
+        gamelayer.EnableClipping();
+        
         Reset();
     }
     
@@ -87,10 +91,15 @@ public:
         curstr *= 1.5;
         wave = Wave(curstr, random);
         drawenemies();
+        enemy = new Enemy(*wave.Enemies[0].enemy, 0, map->Paths[2]);
+    }
+    
+    void StartNextLevel() {
     }
 
 private:
     virtual void activate() override {
+        gamelayer.Resize(maplayer.GetEffectiveBounds().GetSize());
         graphics.Clear();
         graphics.Draw(Widgets::Registry::Active().Backcolor(Gorgon::Graphics::Color::Container));
         
@@ -125,12 +134,16 @@ private:
 
     virtual void doframe(unsigned delta) override {
         scraplbl.Text = Gorgon::String::From(scrap);
+        enemy->Progress(delta);
     }
 
     virtual void render() override {
         maplayer.Clear();
         maplayer.Draw(Color::Black);
         map->Render(maplayer);
+        
+        gamelayer.Clear();
+        enemy->Render(gamelayer, map->offset, {48, 48});
     }
 
     virtual bool RequiresKeyInput() const override {
@@ -144,7 +157,7 @@ private:
     
     bool inithack = LoadResources();
     
-    Gorgon::Graphics::Layer maplayer, towergraphics, enemygraphics;
+    Gorgon::Graphics::Layer maplayer, towergraphics, enemygraphics, gamelayer;
     Map *map = nullptr;
     
     int scrap = 50;
@@ -161,4 +174,5 @@ private:
     Gorgon::Graphics::Bitmap scrapicon;
     
     Wave wave;
+    Enemy *enemy;
 };

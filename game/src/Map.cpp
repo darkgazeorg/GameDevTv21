@@ -205,7 +205,8 @@ Map::Map(std::default_random_engine &random)
     //create paths
     
     //starting points
-    paths.resize(9);
+    std::vector<Gorgon::CGI::Curves> curves;
+    curves.resize(9);
     int dir;
     
     bool nextyaxis = points[1].X != points[0].X;
@@ -216,14 +217,14 @@ Map::Map(std::default_random_engine &random)
     
     if(points[1].X != points[0].X) {
         for(int y=-4; y<=4; y++) {
-            paths[y+4].SetStartingPoint(
+            curves[y+4].SetStartingPoint(
                 {points[0].X+0.5f - nextdir, points[0].Y + 0.5f + y/4.f*nextdir}
             );
         }
     }
     else {
         for(int x=-4; x<=4; x++) {
-            paths[x+4].SetStartingPoint(
+            curves[x+4].SetStartingPoint(
                 {points[0].X + 0.5f - x/4.f*nextdir, points[0].Y - nextdir + 0.5f}
             );
         }
@@ -234,13 +235,13 @@ Map::Map(std::default_random_engine &random)
         if(cur.X != points[i].X) {
             dir = Gorgon::Sign(points[i].X - cur.X);
             for(int y=-4; y<=4; y++) {
-                paths[y+4].Push({points[i].X+0.5f - 1*dir, points[i].Y + 0.5f + y/4.f*dir});
+                curves[y+4].Push({points[i].X+0.5f - 1*dir, points[i].Y + 0.5f + y/4.f*dir});
             }
         }
         else {
             dir = Gorgon::Sign(points[i].Y - cur.Y);
             for(int x=-4; x<=4; x++) {
-                paths[x+4].Push({points[i].X + 0.5f - x/4.f*dir, points[i].Y + 0.5f - 1*dir});
+                curves[x+4].Push({points[i].X + 0.5f - x/4.f*dir, points[i].Y + 0.5f - 1*dir});
             }
         }
         
@@ -254,16 +255,16 @@ Map::Map(std::default_random_engine &random)
             
             if(points[i+1].X != points[i].X) {
                 for(int y=-4; y<=4; y++) {
-                    paths[y+4].Push(
-                        {paths[y+4].Get(paths[y+4].GetCount()-1).P3.X, points[i].Y + 0.5f + y/4.f*nextdir},
+                    curves[y+4].Push(
+                        {curves[y+4].Get( curves[y+4].GetCount()-1).P3.X, points[i].Y + 0.5f + y/4.f*nextdir},
                         {points[i].X+0.5f + nextdir, points[i].Y + 0.5f + y/4.f*nextdir}
                     );
                 }
             }
             else {
                 for(int x=-4; x<=4; x++) {
-                    paths[x+4].Push(
-                        {points[i].X + 0.5f - x/4.f*nextdir, paths[x+4].Get(paths[x+4].GetCount()-1).P3.Y},
+                    curves[x+4].Push(
+                        {points[i].X + 0.5f - x/4.f*nextdir, curves[x+4].Get( curves[x+4].GetCount()-1).P3.Y},
                         {points[i].X + 0.5f - x/4.f*nextdir, points[i].Y + nextdir + 0.5f}
                     );
                 }
@@ -277,14 +278,20 @@ Map::Map(std::default_random_engine &random)
     if(points[last-1].X != points[last].X) {
         dir = Gorgon::Sign(points[last].X - points[last-1].X);
         for(int y=-4; y<=4; y++) {
-            paths[y+4].Push({points[last].X+0.5f, points[last].Y + 0.5f + y/4.f*dir});
+            curves[y+4].Push({points[last].X+0.5f, points[last].Y + 0.5f + y/4.f*dir});
         }
     }
     else {
         dir = Gorgon::Sign(points[last].Y - points[last-1].Y);
         for(int x=-4; x<=4; x++) {
-            paths[x+4].Push({points[last].X + 0.5f - x/4.f*dir, points[last].Y+0.5f});
+            curves[x+4].Push({points[last].X + 0.5f - x/4.f*dir, points[last].Y+0.5f});
         }
+    }
+    
+    //flatten
+    Paths.Destroy();
+    for(auto &curve : curves) {
+        Paths.AddNew(curve.Flatten(0.05));
     }
 
     debug.Resize(mapsize * tilesize);
@@ -296,7 +303,7 @@ Map::Map(std::default_random_engine &random)
     for(int x=0; x<mapsize.Width; x++) {
         Gorgon::CGI::DrawLines(debug, {{x*tilesize.Width+0.5f, 0}, {x*tilesize.Width+0.5f, (float)debug.GetHeight()}}, gridsize.Height, Gorgon::CGI::SolidFill<>({Color::Grey, 0.5f}));
     }
-    for(auto &path : paths) {
+    for(auto &path : curves ) {
         Gorgon::CGI::DrawLines(debug, path.Flatten(0.05f)*Sizef(tilesize), 0.5f, Gorgon::CGI::SolidFill<>({Color::Aqua}));
     }
     
@@ -304,7 +311,7 @@ Map::Map(std::default_random_engine &random)
 }
 
 void Map::Render(Gorgon::Graphics::Layer &target) {
-    Point offset = Point((target.GetTargetSize() - (tilesize * mapsize))/2);
+    offset = Point((target.GetTargetSize() - (tilesize * mapsize))/2);
     for(int y=0; y<mapsize.Height; y++) {
         for(int x=0; x<mapsize.Width; x++) {
             tileset[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
