@@ -69,24 +69,26 @@ int randint(std::default_random_engine &random, int min, int max) {
 }
 
 void Enemy::Render(Gorgon::Graphics::Layer& target, Point offset, Gorgon::Geometry::Size tilesize) {
+    auto &path = *this->path;
     auto st = path[locationpoint];
     auto ed = path.GetLine(locationpoint).End;
     int ind = (int)std::round(atan2(ed.Y - st.Y, ed.X - st.X)/Gorgon::PI*-16+32) % 32;
     Pointf pnt = (st * (1-offsetfrompoint) + ed * offsetfrompoint);
-    auto sz = base.image[ind].GetSize() * tilesize / EnemySize;
+    auto sz = base->image[ind].GetSize() * tilesize / EnemySize;
     pnt = pnt * tilesize;
     pnt -= Point(sz / 2);
     
-    base.image[ind].DrawStretched(target, Point(pnt)+offset, sz);
+    base->image[ind].DrawStretched(target, Point(pnt)+offset, sz);
 }
 
 int Enemy::Progress(int delta) {
-    auto movement = base.speed * delta / 1000;
+    auto movement = base->speed * delta / 1000;
+    auto &path = *this->path;
     
     while(movement > 0) {
         if(locationpoint == path.GetCount()-1) {
             //report point loss
-            return std::min(std::max(1, base.strength/10), 10) + int(log(base.strength));
+            return std::min(std::max(1, base->strength/10), 10) + int(log(base->strength));
         }
         
         auto total = path.GetLine(locationpoint).End.ManhattanDistance(path[locationpoint]);
@@ -140,6 +142,9 @@ Wave::Wave(int ts, std::default_random_engine &random) {
     
     for(int i=0; i<groups; i++) {
         int gts = tsleft;
+        int row = 1;
+        float mult = 1.0f;
+        float delay = randfloat(random, 1.0f, 5.0f);
         if(i != groups - 1) {
             gts = (tsleft * randfloat(random, 0.75f, 1.5f) / (groups-i));
         }
@@ -154,8 +159,19 @@ Wave::Wave(int ts, std::default_random_engine &random) {
             (enemy->strength != maxstr && enemy->strength < gts / 15)
         );
         
-        int count = int(std::round(((float)gts/enemy->strength)));
-        Enemies.push_back({enemy, count, randfloat(random, 1.0f, 5.0f)});
+        mult += (delay - 2.f) / 20.f;
+        
+        if(enemy->GetSize().Width == 1) {
+            row = randint(random, 1, 3);
+            if(row == 3)
+                mult *= 1.2;
+        }
+        else if(enemy->GetSize().Width == 2) {
+            row = randint(random, 1, 2);
+        }
+        
+        int count = int(std::round(((float)gts/(enemy->strength*mult))));
+        Enemies.push_back({enemy, count, row, delay});
         tsleft -= enemy->strength*count;
     }
     

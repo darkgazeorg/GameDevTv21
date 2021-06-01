@@ -8,6 +8,8 @@
 
 #include "Types.h"
 
+extern const Size EnemySize;
+
 class EnemyType {
     friend bool LoadResources();
     friend class Wave;
@@ -20,6 +22,16 @@ public:
     
     
     void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
+    
+    //in halfsizes
+    Size GetSize() const {
+        auto sz = Sizef(image[0].GetSize()) / (EnemySize / 2);
+        return {int(std::ceil(sz.Width)), int(std::ceil(sz.Height))};
+    }
+    
+    float GetSpeed() const {
+        return speed;
+    }
     
 protected:
     std::string id;
@@ -41,6 +53,7 @@ class EnemyGroup {
 public:
     EnemyType *enemy;
     int count;
+    int inrow;
     float delay;
 };
 
@@ -61,9 +74,9 @@ public:
 class Enemy {
 public:
     Enemy(const EnemyType &enemy, int groupind, const Gorgon::Geometry::PointList<> &path) :
-        base(enemy),
+        base(&enemy),
         groupind(groupind),
-        path(path)
+        path(&path)
     { }
     
     //offset is the offset of the map
@@ -73,9 +86,9 @@ public:
     int Progress(int delta);
     
 private:
-    const EnemyType &base;
+    const EnemyType *base;
     int groupind;
-    const Gorgon::Geometry::PointList<> &path;
+    const Gorgon::Geometry::PointList<> *path;
     int locationpoint   = 0;
     float offsetfrompoint = 0;
 };
