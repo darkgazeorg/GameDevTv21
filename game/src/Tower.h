@@ -14,12 +14,16 @@ public:
     
     static std::map<std::string, TowerType> Towers;
     
-    void Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight);
+    void Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight, bool disabled);
     
     void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
     
     bool IsPlacable() const {
         return placable;
+    }
+    
+    int GetCost() const {
+        return cost;
     }
     
 private:

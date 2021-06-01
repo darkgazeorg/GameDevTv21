@@ -6,7 +6,7 @@ const Size TowerSize = {64, 64};
 
 std::map<std::string, TowerType> TowerType::Towers;
 
-void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight) {
+void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight, bool disabled) {
     auto &reg = Gorgon::Widgets::Registry::Active();
     auto &printer = reg.Printer();
     
@@ -15,6 +15,8 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     if(highlight)
         target.Draw(location, width, height, reg.Backcolor(Gorgon::Graphics::Color::Hover));
     
+    if(disabled)
+        target.SetColor({1.0f, 0.5f});
     RenderIcon(target, location);
     
     Gorgon::String::AdvancedTextBuilder adv;
@@ -23,17 +25,23 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     adv.UseBoldFont();
     adv.SetTabWidth(0, 100);
     adv.UseBoldFont();
+    if(disabled)
+        adv.SetColor(Color::Error);
     adv.Append("Cost\t");
     adv.UseDefaultFont();
     adv.Append(cost);
     adv.LineBreak();
     adv.UseBoldFont();
+    if(disabled)
+        adv.UseDefaultColor();
     adv.Append("DPS\t");
     adv.UseDefaultFont();
     adv.Append(round(damageperbullet / reloadtime*10) / 10);
     adv.LineBreak();
     
     printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
+    if(disabled)
+        target.SetColor({1.0f});
 }
 
 void TowerType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) {
