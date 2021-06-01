@@ -87,8 +87,8 @@ namespace {
         int minx = (*std::min_element(path.begin(), path.end(), sortx)).X;
         int miny = (*std::min_element(path.begin(), path.end(), sorty)).Y;
         for(auto& point : path) {
-            if(minx < 0) point.X += std::abs(minx);
-            if(miny < 0) point.Y += std::abs(miny);
+            point.X += -minx;
+            point.Y += -miny;
         }
         return path;
     }
