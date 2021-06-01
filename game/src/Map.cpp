@@ -121,6 +121,7 @@ Map::Map(std::default_random_engine &random)
 
     auto solution = newsolutions[lengths[0].first];
     Size pathsize(getsize(solution) * cellscale);
+    solution = ConnectEnteranceToEdge(solution, pathsize / cellscale, mapsize / cellscale);
     xoffset = (mapsize.Width - pathsize.Width) / 2 + 1;
     yoffset = (mapsize.Height - pathsize.Height) / 2 + 1;
     Gorgon::Geometry::PointList<Point> points;

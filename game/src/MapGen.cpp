@@ -42,6 +42,16 @@ namespace {
         return ret;
     }
 
+    Direction getopposingdir(Direction dir) {
+        static const std::unordered_map<Direction, std::function<Direction()>> fns = {
+            {Direction::East, [] {return Direction::West;}},
+            {Direction::West, [] {return Direction::East;}},
+            {Direction::South, [] {return Direction::North;}},
+            {Direction::North, [] {return Direction::South;}}
+        };
+        return executeperdir(dir, fns);
+    }
+
     Direction resolvedirection(Point current, Point neighbor) {
         Direction dir = Direction::End;
         if(current.X != neighbor.X) {
@@ -78,6 +88,13 @@ namespace {
         ushapes[south][east][north] = Direction::East;
         ushapes[south][west][north] = Direction::West;
         return ushapes;
+    }
+
+    std::pair<Direction, Direction> findtwoclosestedges(Point point, Size size) {
+        std::pair<Direction, Direction> dirs;
+        dirs.first = point.X >= size.Width / 2 ? Direction::East : Direction::West;
+        dirs.second = point.Y >= size.Height / 2 ? Direction::South : Direction::North;
+        return dirs;
     }
 
     std::vector<Point> normalizepath(std::vector<Point> path) {
@@ -173,22 +190,46 @@ std::vector<Point> StretchUTurns(std::vector<Point> orgpath) {
     return normalizepath(path);
 }
 
+std::vector<Point> ConnectEnteranceToEdge(std::vector<Point> path, Size pathsize, Size mapsize) {
+    ASSERT(path.size() > 0, "invalid path");
+    auto enterance = path.begin();
+    std::pair<Direction, Direction> dirs = findtwoclosestedges(*enterance, mapsize);
+    const auto coldetector = [&path] (Point current, Direction dir) {
+        static const std::unordered_map<Direction, std::function<bool(Point, Point)>> detectors = {
+            {Direction::East, [] (Point current, Point other) {return other.X > current.X && other.Y == current.Y;}},
+            {Direction::West, [] (Point current, Point other) {return other.X < current.X && other.Y == current.Y;}},
+            {Direction::North, [] (Point current, Point other) {return other.X == current.X && other.Y < current.Y;}},
+            {Direction::South, [] (Point current, Point other) {return other.X == current.X && other.Y > current.Y;}},
+        };
+        return std::find_if(path.begin(), path.end(), [current, dir] (const Point& other) {
+            return detectors.at(dir)(current, other);
+        }) != path.end();
+    };
+    static const std::unordered_map<Direction, std::function<int(Size, Size)>> tilecounters = {
+        {Direction::East, [] (Size pathsize, Size mapsize) {return (mapsize.Width - pathsize.Width) / 2 + 1;}},
+        {Direction::West, [] (Size pathsize, Size mapsize) {return (mapsize.Width - pathsize.Width) / 2 + 1;}},
+        {Direction::North, [] (Size pathsize, Size mapsize) {return (mapsize.Height - pathsize.Height) / 2 + 1;}},
+        {Direction::South, [] (Size pathsize, Size mapsize) {return (mapsize.Height - pathsize.Height) / 2 + 1;}},
+    };
+    bool iscol1stedge = coldetector(*enterance, dirs.first);
+    bool iscol2ndedge = coldetector(*enterance, dirs.second);
+    ASSERT(!(iscol1stedge && iscol2ndedge), "collision in both direction");
+    Direction dir = !iscol1stedge ? dirs.first : dirs.second;
+    auto current = enterance;
+    // !!! this *may* insert more tiles than necessary
+    for(int i = 0; i < tilecounters.at(dir)(pathsize, mapsize); i++) {
+        Point currpoint = RecursiveBacktracker::getneighbortowards(*current, dir);
+        current = path.insert(current, currpoint);
+    }
+    return path;
+}
+
 Point RecursiveBacktracker::getneighbortowards(Point coord, Direction dir) {
     const std::unordered_map<Direction, std::function<Point()>> fns = {
         {Direction::East, [coord] {return Point(coord.X + 1, coord.Y);}},
         {Direction::West, [coord] {return Point(coord.X - 1, coord.Y);}},
         {Direction::South, [coord] {return Point(coord.X, coord.Y + 1);}},
         {Direction::North, [coord] {return Point(coord.X, coord.Y - 1);}}
-    };
-    return executeperdir(dir, fns);
-}
-
-Direction RecursiveBacktracker::getopposingdir(Direction dir) {
-    static const std::unordered_map<Direction, std::function<Direction()>> fns = {
-        {Direction::East, [] {return Direction::West;}},
-        {Direction::West, [] {return Direction::East;}},
-        {Direction::South, [] {return Direction::North;}},
-        {Direction::North, [] {return Direction::South;}}
     };
     return executeperdir(dir, fns);
 }

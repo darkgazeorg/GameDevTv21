@@ -21,6 +21,7 @@ struct Cell {
 };
 
 std::vector<Point> StretchUTurns(std::vector<Point> orgpath);
+std::vector<Point> ConnectEnteranceToEdge(std::vector<Point> orgpath, Size pathsize, Size mapsize);
 
 class RecursiveBacktracker {
     struct CellData {
@@ -30,13 +31,11 @@ class RecursiveBacktracker {
 
     friend std::ostream& operator<<(std::ostream& out, const CellData& data);
 
-    static Point getneighbortowards(Point coordinate, Direction dir);
-    static Direction getopposingdir(Direction dir);
-
 public:
     Maze Generate(Size size);
     std::vector<Point> Solve(const Maze& maze, Size size);
 
+    static Point getneighbortowards(Point coordinate, Direction dir);
 private:
     Size size;
     std::vector<CellData> cells;
