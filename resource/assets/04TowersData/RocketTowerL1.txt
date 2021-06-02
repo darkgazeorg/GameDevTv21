@@ -9,7 +9,7 @@ Rocket Turret
 0.0
 0.8
 30
-RocketTowerL2
+RocketTowerL2,MissileTowerL1
 5
 1
 3
