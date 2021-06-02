@@ -24,10 +24,10 @@ public:
     Game(Gorgon::SceneManager &parent, Gorgon::SceneID id, int seed) : 
         Gorgon::Scene(parent, id, true),
         topleftpnl(Widgets::Registry::Panel_Blank),
-        towerspnl(Widgets::Registry::Panel_Blank),
-        enemiespnl(Widgets::Registry::Panel_Blank),
         towerslayer(Widgets::Registry::Layerbox_Blank),
-        enemieslayer(Widgets::Registry::Layerbox_Blank)
+        enemieslayer(Widgets::Registry::Layerbox_Blank),
+        towerspnl(Widgets::Registry::Panel_Blank),
+        enemiespnl(Widgets::Registry::Panel_Blank)
     {
         graphics.Add(maplayer);
         maplayer.Move(Widgets::Registry::Active()[Widgets::Registry::Panel_Left].GetHeight(), Widgets::Registry::Active()[Widgets::Registry::Panel_Top].GetHeight());
@@ -41,7 +41,7 @@ public:
         
         auto &org = topleftpnl.CreateOrganizer<Gorgon::UI::Organizers::Flow>();
         ui.Add(topleftpnl);
-        topleftpnl.SetHeight(Widgets::Registry::Active()[Widgets::Registry::Panel_Left].GetHeight()-ui.GetSpacing());
+        topleftpnl.SetHeight(ui.GetUnitWidth());
         topleftpnl.Move(ui.GetSpacing(), ui.GetSpacing());
         topleftpnl.EnableScroll(false, false);
         topleftpnl.SetWidthInUnits(20);
@@ -72,8 +72,53 @@ public:
         towerspnl.Move(0, maplayer.GetTop());
         towerslayer.SetWidth(towerspnl.GetInteriorSize().Width);
         towerspnl.Add(towerslayer);
-        towerslayer.GetLayer().Add(towergraphics);
-        towerslayer.GetLayer().Add(towerinput);
+        towerslayer.GetLayer().Add(towersgraphics);
+        towerslayer.GetLayer().Add(towersinput);
+        
+        towersinput.SetClick([this] (Point location){
+            for(auto l : towerlisting) {
+                if(l.first > location.Y) {
+                    if(TowerType::Towers[l.second].GetCost() < scraps) {
+                        if(buildtower == l.second)
+                            buildtower = "";
+                        else
+                            buildtower = l.second;
+                    }
+                    else
+                        buildtower = "";
+                    
+                    break;
+                }
+            }
+        });
+        
+        //TODO why doesnt this work!!
+        //maplayer.Add(mapinput);
+        mouse.Add(mapinput);
+        //mouse.Move(maplayer.GetLocation());
+        mouse.SetMove([this](Point location) {
+            //TODO why do we need this!!!!!
+            location -= maplayer.GetLocation();
+            Size tilesize = {48, 48};
+
+            maphover = (location - map->offset) / tilesize;
+            
+            if(maphover.X < 0 || maphover.Y < 0 || maphover.X >= map->GetSize().Width || maphover.Y >= map->GetSize().Height)
+                maphover = {-1, -1};
+        });
+        
+        mouse.SetOut([this]() {
+            maphover = {-1, -1};
+        });
+        
+        mouse.SetDown([this]() {
+            if(maphover.X != -1 && buildtower != "" && scraps >= TowerType::Towers[buildtower].GetCost()) {
+                towers.push_back(Tower(TowerType::Towers[buildtower], maphover, !levelinprogress));
+                
+                scraps -= TowerType::Towers[buildtower].GetCost();
+                buildtower = "";
+            }
+        });
         
         enemiespnl.SetHeight((ui.GetHeight() - maplayer.GetTop() - ui.GetSpacing())/2);
         enemiespnl.SetWidth(maplayer.GetLeft() - ui.GetSpacing());
@@ -105,10 +150,10 @@ public:
         enemyind = 0;
         auto t = TowerType::Towers.begin();
         std::advance(t, 2);
-        twr = new Tower(t->second, {4, 4}, false);
         gamespeed = 1;
         paused = false;
         scrapsinlevel = 0;
+        buildtower = "";
     }
     
     void PrepareNextLevel() {
@@ -129,6 +174,7 @@ public:
 private:
     virtual void activate() override {
         gamelayer.Resize(maplayer.GetEffectiveBounds().GetSize());
+        mapinput.Resize(maplayer.GetEffectiveBounds().GetSize());
         graphics.Clear();
         graphics.Draw(Widgets::Registry::Active().Backcolor(Gorgon::Graphics::Color::Container));
         
@@ -138,15 +184,23 @@ private:
     }
     
     void drawtowers() {
-        towergraphics.Clear();
+        towersgraphics.Clear();
         int y = 0;
+        int ind = 0;
+        towerlisting.clear();
         for(auto &tower : TowerType::Towers) {
             if(tower.second.IsPlacable()) {
+                if(tower.first == buildtower && tower.second.GetCost() > scraps)
+                    buildtower = "";
                 towerslayer.SetHeight(y + 68);
+                towerlisting[y + 68] = tower.first;
                 
-                tower.second.Print(towergraphics, {0, y}, towergraphics.GetEffectiveBounds().Width(), false, tower.second.GetCost() > scraps);
+                tower.second.Print(towersgraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), tower.first == buildtower, tower.second.GetCost() > scraps);
                 y += 68;
+                
             }
+            
+            ind++;
         }
     }
     
@@ -156,7 +210,7 @@ private:
         for(auto &g : wave.Enemies) {
             enemieslayer.SetHeight(y + 80);
             
-            g.enemy->Print(enemygraphics, {0, y}, towergraphics.GetEffectiveBounds().Width(), g.count);
+            g.enemy->Print(enemygraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), g.count);
             y += 80;
         }
     }
@@ -167,7 +221,8 @@ private:
         
         delta *= gamespeed * !paused;
 
-        scrapsinlevel += twr->Progress(delta, enemies);
+        for(auto &twr : towers)
+            scrapsinlevel += twr.Progress(delta, enemies);
         
         if(levelinprogress) {
             std::vector<long int> enemiestodel;
@@ -226,6 +281,8 @@ private:
                 PrepareNextLevel();
             }
         }
+        
+        drawtowers();
     }
 
     virtual void render() override {
@@ -233,11 +290,18 @@ private:
         maplayer.Draw(Color::Black);
         map->Render(maplayer);
         
+        Size tilesize = {48, 48};
+        
         gamelayer.Clear();
         for(auto &enemy : enemies)
-            enemy.second.Render(gamelayer, map->offset, {48, 48});
+            enemy.second.Render(gamelayer, map->offset, tilesize);
         
-        twr->Render(gamelayer, map->offset, {48, 48});
+        for(auto &twr : towers)
+            twr.Render(gamelayer, map->offset, tilesize);
+        
+        if(maphover.X != -1 && buildtower != "" && (*map)(maphover.X, maphover.Y) == 0) {
+            resources.Root().Get<R::Folder>(2).Get<R::Image>("Target").DrawStretched(maplayer, maphover * tilesize + map->offset, tilesize);
+        }
     }
 
     virtual bool RequiresKeyInput() const override {
@@ -287,6 +351,22 @@ private:
                 
             case Keycode::Space:
                 paused = !paused;
+                break;
+                
+            case Keycode::Escape:
+                buildtower = "";
+                break;
+                
+            case Keycode::Enter:
+            case Keycode::Numpad_Enter:
+                if(maphover.X != -1 && buildtower != "" && scraps >= TowerType::Towers[buildtower].GetCost()) {
+                    towers.push_back(Tower(TowerType::Towers[buildtower], maphover, !levelinprogress));
+                    
+                    scraps -= TowerType::Towers[buildtower].GetCost();
+                    buildtower = "";
+                }
+                break;
+
             }
         }
     }
@@ -295,8 +375,8 @@ private:
     
     bool inithack = LoadResources();
     
-    Gorgon::Graphics::Layer maplayer, towergraphics, enemygraphics, gamelayer;
-    Gorgon::Input::Layer towerinput;
+    Gorgon::Graphics::Layer maplayer, towersgraphics, enemygraphics, gamelayer;
+    Gorgon::Input::Layer towersinput, mapinput;
     Map *map = nullptr;
     
     int scraps  = 40;
@@ -307,7 +387,7 @@ private:
     int delayenemies = 0; //ms
     bool levelinprogress = false;
     int seltower = -1;
-    int buildtower = -1;
+    std::string buildtower;
     
     Widgets::Panel topleftpnl;
     Widgets::Button quit, nextwave;
@@ -317,6 +397,8 @@ private:
     Widgets::Panel towerspnl;
     Widgets::Panel enemiespnl;
     
+    Point maphover = {-1, -1};
+    
     int gamespeed = 1;
     bool paused   = false;
     
@@ -324,6 +406,7 @@ private:
     
     Wave wave;
     std::map<long int, Enemy> enemies;
+    std::map<int, std::string> towerlisting;
     long int enemyind;
-    Tower *twr;
+    std::vector<Tower> towers;
 };

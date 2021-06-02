@@ -48,6 +48,10 @@ public:
         map[x + y*mapsize.Width] = (int)val;
     }
     
+    Size GetSize() const {
+        return mapsize;
+    }
+    
     Point offset = {0, 0};
     Gorgon::Containers::Collection<Gorgon::Geometry::PointList<>> Paths;
     

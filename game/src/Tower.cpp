@@ -13,10 +13,8 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     auto &reg = Gorgon::Widgets::Registry::Active();
     auto &printer = reg.Printer();
     
-    int height = printer.GetHeight() * 4;
-    
     if(highlight)
-        target.Draw(location, width, height, reg.Backcolor(Gorgon::Graphics::Color::Hover));
+        target.Draw(location, width, 64, reg.Backcolor(Gorgon::Graphics::Color::Hover));
     
     if(disabled)
         target.SetColor({1.0f, 0.5f});
