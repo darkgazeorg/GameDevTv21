@@ -205,19 +205,24 @@ std::vector<Point> ConnectEnteranceToEdge(std::vector<Point> path, Size pathsize
             return detectors.at(dir)(current, other);
         }) != path.end();
     };
-    static const std::unordered_map<Direction, std::function<int(Size, Size)>> tilecounters = {
-        {Direction::East, [] (Size pathsize, Size mapsize) {return (mapsize.Width - pathsize.Width) / 2 + 1;}},
-        {Direction::West, [] (Size pathsize, Size mapsize) {return (mapsize.Width - pathsize.Width) / 2 + 1;}},
-        {Direction::North, [] (Size pathsize, Size mapsize) {return (mapsize.Height - pathsize.Height) / 2 + 1;}},
-        {Direction::South, [] (Size pathsize, Size mapsize) {return (mapsize.Height - pathsize.Height) / 2 + 1;}},
+    static const std::unordered_map<Direction, std::function<int(Point, Size, Size)>> tilecounters = {
+        {Direction::East, [] (Point enterance, Size pathsize, Size mapsize)
+            {return ((pathsize.Width - 1) - enterance.X) + ((mapsize.Width - pathsize.Width) / 2 + 1);}},
+        {Direction::West, [] (Point enterance, Size pathsize, Size mapsize)
+            {return (enterance.X) + ((mapsize.Width - pathsize.Width) / 2 + 1);}},
+        {Direction::North, [] (Point enterance, Size pathsize, Size mapsize)
+            {return (enterance.Y) + ((mapsize.Height - pathsize.Height) / 2 + 1);}},
+        {Direction::South, [] (Point enterance, Size pathsize, Size mapsize)
+            {return ((pathsize.Height - 1) - enterance.Y) + ((mapsize.Height - pathsize.Height) / 2 + 1);}},
     };
     bool iscol1stedge = coldetector(*enterance, dirs.first);
     bool iscol2ndedge = coldetector(*enterance, dirs.second);
     ASSERT(!(iscol1stedge && iscol2ndedge), "collision in both direction");
     Direction dir = !iscol1stedge ? dirs.first : dirs.second;
     auto current = enterance;
+    const int tilecount = tilecounters.at(dir)(*enterance, pathsize, mapsize);
     // !!! this *may* insert more tiles than necessary
-    for(int i = 0; i < tilecounters.at(dir)(pathsize, mapsize); i++) {
+    for(int i = 0; i < tilecount; i++) {
         Point currpoint = RecursiveBacktracker::getneighbortowards(*current, dir);
         current = path.insert(current, currpoint);
     }
