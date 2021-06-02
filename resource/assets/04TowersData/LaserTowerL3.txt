@@ -1,5 +1,5 @@
-Laser Turret II
-10
+Laser Turret III
+15
 2
 1
 1
@@ -8,8 +8,8 @@ Laser Turret II
 0
 0.5
 0.0
-30
-LaserTowerL3
+60
+
 4
 0
 1
@@ -18,8 +18,8 @@ LaserTowerL3
 0.2
 (0.5, 0.75)
 
-Tower11
+Tower12
 
-Laser02
+Laser03
 Expo04
 0

@@ -33,6 +33,8 @@ public:
         return upgradesto;
     }
     
+    void DrawRange(Gorgon::Graphics::Layer &target, Point offset, Size tilesize);
+    
 private:
     std::string id;
     std::string name;
@@ -60,6 +62,7 @@ private:
     Gorgon::Graphics::Bitmap *effect = nullptr;
     Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> bullet;
     Gorgon::Graphics::Bitmap *bulleteffect = nullptr;
+    Gorgon::Graphics::Bitmap rangeimage;
 };
 
 class Bullet {
@@ -82,7 +85,7 @@ public:
             construction   = std::min(std::max((int)std::round(base.cost * 100 + log(base.cost)*1000), 5000), 30000);
     }
     
-    void Render(Gorgon::Graphics::Layer &target, Point offset, Size tilesize);
+    void Render(Gorgon::Graphics::Layer &target, Point offset, Size tilesize, bool showrange);
     
     //returns scraps
     int Progress(unsigned delta, std::map<long int, Enemy> &enemies);
@@ -95,6 +98,10 @@ public:
     
     const TowerType &GetType() const {
         return *base;
+    }
+    
+    bool UnderConstruction() const {
+        return construction != 0;
     }
     
 private:

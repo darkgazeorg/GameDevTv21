@@ -38,7 +38,7 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
         adv.UseDefaultColor();
     adv.Append("DPS\t");
     adv.UseDefaultFont();
-    adv.Append(round(numberofbullets * damageperbullet / reloadtime*10) / 10);
+    adv.Append(round(damageperbullet / reloadtime*10) / 10);
     adv.LineBreak();
     
     printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
@@ -61,11 +61,20 @@ void TowerType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) cons
     }
 }
 
-void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offset, Gorgon::Geometry::Size tilesize) {
+void TowerType::DrawRange(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offset, Gorgon::Geometry::Size tilesize) {
+    auto sz = rangeimage.GetSize() * tilesize / TowerSize;
+    rangeimage.DrawStretched(target, offset - Point(sz/2)+Point(tilesize)/2, sz);
+}
+
+void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offset, Gorgon::Geometry::Size tilesize, bool showrange) {
     if(construction) {
         upgrade.DrawStretched(target, location * tilesize + offset, tilesize);
     }
     else {
+        if(showrange) {
+            auto sz = base->rangeimage.GetSize() * tilesize / TowerSize;
+            base->rangeimage.DrawStretched(target, Point(location * tilesize) + offset - Point(sz/2)+Point(tilesize)/2, sz);
+        }
         if(base->base) {
             auto sz = base->base->GetSize() * tilesize / TowerSize;
             base->base->DrawStretched(target, location * tilesize + offset, sz);
@@ -95,6 +104,7 @@ void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offs
         base->bullet[bullet.angle].DrawStretched(target, Point(bullet.location * tilesize) + offset - Point(sz/2), sz);
     }
 }
+
 
 int Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
     int scraps = 0;
@@ -268,20 +278,35 @@ void Tower::Print(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point locat
     adv.SetTabWidth(0, 100);
     adv.UseBoldFont();
     adv.LineBreak();
-    adv.UseBoldFont();
-    adv.Append("Kills\t\t");
-    adv.UseDefaultFont();
-    adv.Append(kills);
-    adv.LineBreak();
-    adv.UseBoldFont();
-    adv.Append("Damage\t");
-    adv.UseDefaultFont();
-    adv.Append(damage);
-    adv.LineBreak();
-    
-    if(base->upgradesto.size()) {
-        adv.UseHeader(Gorgon::Graphics::HeaderLevel::H3);
-        adv.Append("\nUpgrades: ");
+    if(UnderConstruction()) {
+        adv.SetColor(Color::Error)
+           .Append("Under construction: ")
+           .UseDefaultColor()
+           .Append(construction/1000)
+           .Append("s")
+        ;
+    }
+    else {
+        adv.UseBoldFont()
+           .Append("DPS\t\t")
+           .UseDefaultFont()
+           .Append(round(base->damageperbullet / base->reloadtime*10) / 10)
+           .LineBreak()
+           .UseBoldFont()
+           .Append("Kills\t\t")
+           .UseDefaultFont()
+           .Append(kills)
+           .UseBoldFont()
+           .Append("\tDamage\t")
+           .UseDefaultFont()
+           .Append(damage)
+           .LineBreak()
+        ;
+        
+        if(base->upgradesto.size()) {
+            adv.UseHeader(Gorgon::Graphics::HeaderLevel::H3);
+            adv.Append("\nUpgrades: ");
+        }
     }
     
     printer.AdvancedPrint(target, adv, location + Point(4, 4), width, true, false);

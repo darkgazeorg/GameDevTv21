@@ -44,3 +44,6 @@ compile_commands.json
 .cache/
 .kdev4/
 *.kdev4
+resource/Tile Importer/.kdev4/Tile Importer.kdev4
+resource/bin/TileImporter
+resource/Tile Importer/.kdev4/

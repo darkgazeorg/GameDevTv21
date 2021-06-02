@@ -6,7 +6,7 @@ Foot soldier captain
 1
 1
 0.4
-15
+20
 25
 Infantry02
 
