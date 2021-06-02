@@ -4,14 +4,39 @@
 
 #include <Gorgon/Utils/Assert.h>
 
+#include <array>
 #include <functional>
 #include <initializer_list>
 #include <type_traits>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
-using Walls = std::unordered_map<Direction, bool>;
+constexpr int DIR_SIZE = (int)Direction::End;
+
+template<typename T>
+struct DirArray {
+    const T& operator[](Direction dir) const {
+        ASSERT(dir != Direction::End, "not a valid index");
+        return operator[]((int)dir);
+    }
+
+    T& operator[](Direction dir) {
+        ASSERT(dir != Direction::End, "not a valid index");
+        return operator[]((int)dir);
+    }
+
+    const T& operator[](int dir) const {
+        return arr[dir];
+    }
+
+    T& operator[](int dir) {
+        return arr[dir];
+    }
+
+    std::array<T, DIR_SIZE> arr;
+};
+
+using Walls = DirArray<bool>;
 struct Cell;
 using Maze = std::pair<std::pair<Point, Point>, std::vector<Cell>>;
 

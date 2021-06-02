@@ -18,11 +18,11 @@ namespace Widgets = Gorgon::Widgets;
 namespace Color = Gorgon::Graphics::Color;
 
 enum class Direction {
-    North,
-    South,
-    East,
-    West,
-    End,
+    East = 0,
+    West = 1,
+    North = 2,
+    South = 3,
+    End = 4,
 };
 
 enum class DamageType {
