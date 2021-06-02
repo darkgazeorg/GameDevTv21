@@ -61,11 +61,20 @@ void TowerType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) cons
     }
 }
 
-void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offset, Gorgon::Geometry::Size tilesize) {
+void TowerType::DrawRange(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offset, Gorgon::Geometry::Size tilesize) {
+    auto sz = rangeimage.GetSize() * tilesize / TowerSize;
+    rangeimage.DrawStretched(target, offset - Point(sz/2)+Point(tilesize)/2, sz);
+}
+
+void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offset, Gorgon::Geometry::Size tilesize, bool showrange) {
     if(construction) {
         upgrade.DrawStretched(target, location * tilesize + offset, tilesize);
     }
     else {
+        if(showrange) {
+            auto sz = base->rangeimage.GetSize() * tilesize / TowerSize;
+            base->rangeimage.DrawStretched(target, Point(location * tilesize) + offset - Point(sz/2)+Point(tilesize)/2, sz);
+        }
         if(base->base) {
             auto sz = base->base->GetSize() * tilesize / TowerSize;
             base->base->DrawStretched(target, location * tilesize + offset, sz);
@@ -95,6 +104,7 @@ void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offs
         base->bullet[bullet.angle].DrawStretched(target, Point(bullet.location * tilesize) + offset - Point(sz/2), sz);
     }
 }
+
 
 int Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
     int scraps = 0;

@@ -4,6 +4,7 @@
 #include <Gorgon/Resource/Image.h>
 #include <Gorgon/Resource/Data.h>
 #include <Gorgon/String/Tokenizer.h>
+#include <Gorgon/CGI/Circle.h>
 
 #include "Tower.h"
 #include "Enemy.h"
@@ -112,6 +113,26 @@ bool LoadResources() {
             for(; tok.IsValid(); tok.Next()) {
                 tower.upgradesto.push_back(*tok);
             }
+            
+            tower.rangeimage.Resize(Size(tower.range*2*64+8));
+            tower.rangeimage.Clear();
+            Gorgon::Graphics::RGBAf targetcolor = Color::Black;
+            if(tower.target == TargetType::Air)
+                targetcolor = Color::Blue;
+            else if(tower.target == TargetType::Ground)
+                targetcolor = Color::Red;
+            
+            Gorgon::CGI::Circle(
+                tower.rangeimage, Pointf(Sizef(tower.rangeimage.GetSize())/2.f), 
+                tower.range*64, 4,
+                Gorgon::CGI::SolidFill<>({Color::White, 0.4})
+            );
+            Gorgon::CGI::Circle(
+                tower.rangeimage, Pointf(Sizef(tower.rangeimage.GetSize())/2.f), 
+                tower.range*64+1, 2,
+                Gorgon::CGI::SolidFill<>(targetcolor)
+            );
+            tower.rangeimage.Prepare();
         }
     }
     

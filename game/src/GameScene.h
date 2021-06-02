@@ -89,7 +89,7 @@ public:
                             towers.erase(towers.begin() + seltower);
                             towers.push_back(Tower(TowerType::Towers[l.second], pos, !levelinprogress));
                             scraps -= TowerType::Towers[l.second].GetCost();
-                            seltower = -1;
+                            seltower = towers.size() - 1;
                             
                             break;
                         }
@@ -148,6 +148,7 @@ public:
                     return;
                 
                 towers.push_back(Tower(TowerType::Towers[buildtower], maphover, !levelinprogress));
+                seltower = -1;
                 
                 scraps -= TowerType::Towers[buildtower].GetCost();
                 
@@ -363,8 +364,11 @@ private:
         for(auto &enemy : enemies)
             enemy.second.Render(gamelayer, map->offset, tilesize);
         
-        for(auto &twr : towers)
-            twr.Render(gamelayer, map->offset, tilesize);
+        int ind = 0;
+        for(auto &twr : towers) {
+            twr.Render(gamelayer, map->offset, tilesize, seltower == ind || buildtower != "");
+            ind++;
+        }
         
         if(maphover.X != -1 && buildtower != "" && (*map)(maphover.X, maphover.Y) == 0) {
             bool found = false;
@@ -375,8 +379,11 @@ private:
                 }
             }
             
-            if(!found)
+            if(!found) {
                 resources.Root().Get<R::Folder>(2).Get<R::Image>("Target").DrawStretched(gamelayer, maphover * tilesize + map->offset, tilesize);
+                
+                TowerType::Towers[buildtower].DrawRange(gamelayer, maphover * tilesize + map->offset, tilesize);
+            }
         }
         
         if(seltower != -1) {
