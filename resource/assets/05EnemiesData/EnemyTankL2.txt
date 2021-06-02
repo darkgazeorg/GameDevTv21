@@ -1,5 +1,5 @@
 Armoured vehicle
-1
+2
 4
 30
 5
@@ -8,5 +8,5 @@ Armoured vehicle
 0.5
 15
 70
-Tank14
+Tank06
 

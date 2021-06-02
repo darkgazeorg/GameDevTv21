@@ -1,12 +1,12 @@
-Flyer
-6
+Fighter Plane
 4
-30
+5
+15
 5
 -5
 0
-0.5
+1.5
 15
-70
-Flyer02
-FlyerShadow02
+30
+SpyPlane
+SpyPlaneShadow

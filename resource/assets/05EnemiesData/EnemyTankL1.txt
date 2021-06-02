@@ -1,12 +1,12 @@
 Light armoured vehicle
-1
+2
 3
 25
 3
 0
 0
 0.5
-15
+10
 50
-Tank13
+Tank21
 

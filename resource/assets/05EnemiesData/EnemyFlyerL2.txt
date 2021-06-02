@@ -1,0 +1,12 @@
+Bomber
+4
+4
+40
+5
+-5
+0
+0.5
+20
+50
+Bomber
+BomberShadow
