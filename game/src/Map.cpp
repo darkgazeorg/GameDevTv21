@@ -293,6 +293,7 @@ Map::Map(std::default_random_engine &random)
     for(auto &curve : curves) {
         Paths.AddNew(curve.Flatten(0.05));
     }
+    Paths.AddNew(Gorgon::Geometry::PointList<>{Paths[0].Front(), Paths[0].Back()});
 
     debug.Resize(mapsize * tilesize);
     debug.Clear();

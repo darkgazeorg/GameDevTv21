@@ -313,7 +313,10 @@ private:
             if(!wave.Enemies.empty() && delayenemies < delta) {
                 auto &grp = wave.Enemies[0];
                 int &cnt = grp.count;
-                if(grp.inrow == 3 && cnt >= 3) {
+                if(IsFlyer(grp.enemy->GetType())) {
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[9]});
+                }
+                else if(grp.inrow == 3 && cnt >= 3) {
                     enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[1]});
                     enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[4]});
                     enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[7]});

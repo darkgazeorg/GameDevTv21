@@ -31,6 +31,9 @@ public:
         return speed;
     }
     
+    EnemyClass GetType() const {
+        return type;
+    }
 protected:
     std::string id;
     std::string name;

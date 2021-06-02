@@ -203,12 +203,12 @@ Wave::Wave(int ts, std::default_random_engine &random) {
         
         mult += (delay - 2.f) / 20.f;
         
-        if(enemy->GetSize().Width <= 0.51) {
+        if(!IsFlyer(enemy->type) && enemy->GetSize().Width <= 0.51) {
             row = randint(random, 1, 3);
             if(row == 3)
                 mult *= 1.2;
         }
-        else if(enemy->GetSize().Width <= 1.01) {
+        else if(!IsFlyer(enemy->type) && enemy->GetSize().Width <= 1.01) {
             row = randint(random, 1, 2);
         }
         
