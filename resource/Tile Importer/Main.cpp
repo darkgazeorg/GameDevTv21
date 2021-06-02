@@ -319,6 +319,7 @@ void doimport(int scale) {
                     int scraps = 0;
                     int strength = 0;
                     std::string image = "";
+                    std::string shadow = "";
 
                     std::ifstream dataf(FS::Join(fold_path, name + ".txt"));
 
@@ -369,6 +370,10 @@ void doimport(int scale) {
                         if(!line.empty())
                             image = line;
                         
+                        std::getline(dataf, line);
+                        if(!line.empty())
+                            shadow = line;
+                        
                     }
                     
                     data.SetName(name);
@@ -383,6 +388,7 @@ void doimport(int scale) {
                     data.Append("scraps", scraps);
                     data.Append("strength", strength);
                     data.Append("image", image);
+                    data.Append("shadow", shadow);
                     
                     fold.Add(data);
                     
