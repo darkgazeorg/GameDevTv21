@@ -80,7 +80,8 @@ public:
     
     void Render(Gorgon::Graphics::Layer &target, Point offset, Size tilesize);
     
-    void Progress(unsigned delta, std::map<long int, Enemy> &enemies);
+    //returns scraps
+    int Progress(unsigned delta, std::map<long int, Enemy> &enemies);
     
 private:
     const TowerType *base;

@@ -97,14 +97,15 @@ void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offs
     }
 }
 
-void Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
+int Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
+    int scraps = 0;
     if(construction) {
         if(construction > delta)
             construction -= delta;
         else
             construction = 0;
         
-        return;
+        return 0;
     }
     
     if(tracktarget != -1) {
@@ -202,6 +203,7 @@ restart:
                     if(dist < base->areasize) {
                         if(p.second.ApplyDamage(base->damageperbullet * (1 - base->areafalloff * dist / base->areasize), base->damagetype)) {
                             eraselist.push_back(p.first);
+                            scraps += p.second.GetScraps();
                             removed = true;
                         }
                     }
@@ -214,6 +216,7 @@ restart:
                 
                 if(enemy.ApplyDamage(base->damageperbullet * (1 - base->distancefalloff * dist / base->range), base->damagetype)) {
                     enemies.erase(bullet.target);
+                    scraps += enemy.GetScraps();
                     removed = true;
                 }
             }
@@ -231,5 +234,6 @@ restart:
             bullet.location += norm * dist;
         }
     }
+    return scraps;
 }
 

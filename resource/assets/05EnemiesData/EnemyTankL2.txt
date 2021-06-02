@@ -3,8 +3,8 @@ Armoured vehicle
 4
 30
 5
-10
-50
+2
+2
 0.5
 15
 70

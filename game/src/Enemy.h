@@ -98,6 +98,10 @@ public:
         return pnt;
     }
     
+    int GetScraps() const {
+        return base->scraps;
+    }
+    
     bool ApplyDamage(int damage, DamageType type) {
         switch(type) {
         case DamageType::Knetic:

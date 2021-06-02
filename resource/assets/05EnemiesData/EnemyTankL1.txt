@@ -3,8 +3,8 @@ Light armoured vehicle
 3
 25
 3
-10
-50
+0
+0
 0.5
 15
 50

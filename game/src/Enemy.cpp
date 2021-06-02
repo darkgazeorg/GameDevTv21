@@ -79,6 +79,11 @@ void Enemy::Render(Gorgon::Graphics::Layer& target, Point offset, Gorgon::Geomet
     pnt -= Point(sz / 2);
     
     base->image[ind].DrawStretched(target, Point(pnt)+offset, sz);
+    
+    if(hpleft < base->hitpoints) {
+        target.Draw(Point(pnt) + offset, sz.Width, 6, Color::Charcoal);
+        target.Draw(Point(pnt) + offset + Point(1, 1), (sz.Width-2) * hpleft / base->hitpoints, 4, Color::Red);
+    }
 }
 
 int Enemy::Progress(int delta) {

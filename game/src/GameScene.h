@@ -25,7 +25,9 @@ public:
         Gorgon::Scene(parent, id, true),
         topleftpnl(Widgets::Registry::Panel_Blank),
         towerspnl(Widgets::Registry::Panel_Blank),
-        enemiespnl(Widgets::Registry::Panel_Blank)
+        enemiespnl(Widgets::Registry::Panel_Blank),
+        towerslayer(Widgets::Registry::Layerbox_Blank),
+        enemieslayer(Widgets::Registry::Layerbox_Blank)
     {
         graphics.Add(maplayer);
         maplayer.Move(Widgets::Registry::Active()[Widgets::Registry::Panel_Left].GetHeight(), Widgets::Registry::Active()[Widgets::Registry::Panel_Top].GetHeight());
@@ -51,7 +53,7 @@ public:
                           Size{Widgets::Registry::Active().GetEmSize()}
         );
         scraplbl.SetIcon(scrapicon);
-        scraplbl.Text = Gorgon::String::From(scrap);
+        scraplbl.Text = Gorgon::String::From(scraps);
         
         healthicon = Scale(resources.Root().Get<R::Folder>(2).Get<R::Image>("Health"), 
                           Size{Widgets::Registry::Active().GetEmSize()}
@@ -71,6 +73,7 @@ public:
         towerslayer.SetWidth(towerspnl.GetInteriorSize().Width);
         towerspnl.Add(towerslayer);
         towerslayer.GetLayer().Add(towergraphics);
+        towerslayer.GetLayer().Add(towerinput);
         
         enemiespnl.SetHeight((ui.GetHeight() - maplayer.GetTop() - ui.GetSpacing())/2);
         enemiespnl.SetWidth(maplayer.GetLeft() - ui.GetSpacing());
@@ -95,7 +98,7 @@ public:
     
     void Reset(int seed) {
         random = std::default_random_engine(seed);
-        scrap = 40;
+        scraps = 40;
         delete map;
         map = new Map(random);
         PrepareNextLevel();
@@ -105,9 +108,12 @@ public:
         twr = new Tower(t->second, {4, 4}, false);
         gamespeed = 1;
         paused = false;
+        scrapsinlevel = 0;
     }
     
     void PrepareNextLevel() {
+        scraps += scrapsinlevel;
+        scrapsinlevel = 0;
         curstr *= 1.5;
         wave = Wave(curstr, random);
         drawenemies();
@@ -138,7 +144,7 @@ private:
             if(tower.second.IsPlacable()) {
                 towerslayer.SetHeight(y + 68);
                 
-                tower.second.Print(towergraphics, {0, y}, towergraphics.GetEffectiveBounds().Width(), false, tower.second.GetCost() > scrap);
+                tower.second.Print(towergraphics, {0, y}, towergraphics.GetEffectiveBounds().Width(), false, tower.second.GetCost() > scraps);
                 y += 68;
             }
         }
@@ -156,12 +162,12 @@ private:
     }
 
     virtual void doframe(unsigned delta) override {
-        scraplbl.Text = Gorgon::String::From(scrap);
+        scraplbl.Text = Gorgon::String::Concat(scraps, " + ", scrapsinlevel);
         healthlbl.Text = Gorgon::String::From(health);
         
         delta *= gamespeed * !paused;
 
-        twr->Progress(delta, enemies);
+        scrapsinlevel += twr->Progress(delta, enemies);
         
         if(levelinprogress) {
             std::vector<long int> enemiestodel;
@@ -290,14 +296,18 @@ private:
     bool inithack = LoadResources();
     
     Gorgon::Graphics::Layer maplayer, towergraphics, enemygraphics, gamelayer;
+    Gorgon::Input::Layer towerinput;
     Map *map = nullptr;
     
-    int scrap  = 40;
+    int scraps  = 40;
+    int scrapsinlevel  = 0;
     int health = 100;
     int curstr = 67; //this will be multiplied with 1.5 to get 100 for the first level
     int level  = 0;
     int delayenemies = 0; //ms
     bool levelinprogress = false;
+    int seltower = -1;
+    int buildtower = -1;
     
     Widgets::Panel topleftpnl;
     Widgets::Button quit, nextwave;
