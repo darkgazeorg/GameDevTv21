@@ -103,6 +103,11 @@ void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offs
         auto sz = base->bullet[bullet.angle].GetSize() * tilesize / TowerSize;
         base->bullet[bullet.angle].DrawStretched(target, Point(bullet.location * tilesize) + offset - Point(sz/2), sz);
     }
+    
+    for(auto &exp : explosions) {
+        auto sz = base->bulleteffect->GetSize() * tilesize / TowerSize;
+        base->bulleteffect->DrawStretched(target, Point(exp.first * tilesize) + offset - Point(sz/2), sz, Gorgon::Graphics::RGBAf{1.f, (float)pow(1.f - abs(exp.second), 2.f)});
+    }
 }
 
 
@@ -206,6 +211,21 @@ int Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
     
     erasegone();
     
+    for(auto &exp : explosions) {
+        if(exp.second >= 0) {
+            exp.second += delta/250.f;
+        }
+        else {
+            exp.second += delta/100.f;
+            if(exp.second > 0)
+                exp.second = 0;
+        }
+    }
+    
+    explosions.erase(std::remove_if(explosions.begin(), explosions.end(), [](auto &exp) {
+        return exp.second >= 1.0f;
+    }), explosions.end());
+    
 restart:
     for(auto &bullet : flyingbullets) {
         if(bullet.done)
@@ -218,9 +238,13 @@ restart:
         
         if(dist >= bullet.location.Distance(enemy.GetLocation())) {
             bool removed = false;
+            bullet.location = enemy.GetLocation();
+            
+            if(base->bulleteffect) {
+                explosions.push_back({bullet.location, -0.75f});
+            }
             
             if(base->areasize > 0) {
-                bullet.location = enemy.GetLocation();
                 
                 std::vector<long int> eraselist;
                 for(auto &p : enemies) {

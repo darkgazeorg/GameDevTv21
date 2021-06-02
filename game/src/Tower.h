@@ -110,6 +110,7 @@ private:
     long int tracktarget = -1;
     int currentbullets;
     std::vector<Bullet> flyingbullets;
+    std::vector<std::pair<Point, float>> explosions; //second is timer
     int angle = 0;
     int construction = 0;
     int reloadloop = 0;
