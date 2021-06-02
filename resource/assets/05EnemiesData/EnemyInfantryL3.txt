@@ -1,0 +1,12 @@
+Special Forces Soldier
+1
+5
+20
+0
+1
+1
+0.5
+20
+40
+Infantry03
+
