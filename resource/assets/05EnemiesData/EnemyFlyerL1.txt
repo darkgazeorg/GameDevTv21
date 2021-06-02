@@ -1,0 +1,12 @@
+Flyer
+1
+4
+30
+5
+10
+50
+0.5
+15
+70
+Flyer02
+FlyerShadow02
