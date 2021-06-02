@@ -17,7 +17,7 @@
 
 extern R::File resources;
 
-#define rint(min, max)    std::uniform_int_distribution<int>(min, max)(random)
+#define rint(min, max)    std::uniform_int_distribution<int>(min, max)(RNG)
 
 class Game : public Gorgon::Scene {
 public:
@@ -192,10 +192,10 @@ public:
     }
     
     void Reset(int seed) {
-        random = std::default_random_engine(seed);
+        RNG = std::default_random_engine(seed);
         scraps = 40;
         delete map;
-        map = new Map(random);
+        map = new Map(RNG);
         PrepareNextLevel();
         enemyind = 0;
         auto t = TowerType::Towers.begin();
@@ -210,7 +210,7 @@ public:
         scraps += scrapsinlevel;
         scrapsinlevel = 0;
         curstr *= 1.5;
-        wave = Wave(curstr, random);
+        wave = Wave(curstr, RNG);
         drawenemies();
         level++;
     }
@@ -458,8 +458,6 @@ private:
             }
         }
     }
-    
-    std::default_random_engine random = std::default_random_engine{0};
     
     bool inithack = LoadResources();
     

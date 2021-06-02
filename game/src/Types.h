@@ -49,3 +49,5 @@ enum class TargetType {
 };
 
 namespace R = Gorgon::Resource;
+
+extern std::default_random_engine RNG;

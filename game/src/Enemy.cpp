@@ -68,6 +68,30 @@ int randint(std::default_random_engine &random, int min, int max) {
     return std::uniform_int_distribution<int>(min, max)(random);
 }
 
+bool Enemy::ApplyDamage(int damage, DamageType type) {
+    if(std::uniform_real_distribution<float>()(RNG) < base->evasion)
+        return false;
+    
+    switch(type) {
+    case DamageType::Knetic:
+        damage -= base->armor;
+        break;
+    case DamageType::Explosive:
+        damage -= base->reactivearmor;
+        break;
+    case DamageType::Laser:
+        damage -= base->shield;
+        break;
+    }
+
+    if(hpleft <= damage)
+        return true;
+
+    hpleft -= damage;
+    return false;
+}
+
+
 void Enemy::Render(Gorgon::Graphics::Layer& target, Point offset, Gorgon::Geometry::Size tilesize) {
     auto &path = *this->path;
     auto st = path[locationpoint];

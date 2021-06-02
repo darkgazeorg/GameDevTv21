@@ -103,25 +103,7 @@ public:
         return base->scraps;
     }
     
-    bool ApplyDamage(int damage, DamageType type) {
-        switch(type) {
-        case DamageType::Knetic:
-            damage -= base->armor;
-            break;
-        case DamageType::Explosive:
-            damage -= base->reactivearmor;
-            break;
-        case DamageType::Laser:
-            damage -= base->shield;
-            break;
-        }
-        
-        if(hpleft <= damage)
-            return true;
-        
-        hpleft -= damage;
-        return false;
-    }
+    bool ApplyDamage(int damage, DamageType type);
     
     EnemyClass GetType() const {
         return base->type;

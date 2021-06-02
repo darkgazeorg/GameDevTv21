@@ -41,7 +41,6 @@ if(MSVC)
   set(COMPILER_OPTIONS
     /Zi
     /permissive-
-    /WX
     /W4
   )
 else()

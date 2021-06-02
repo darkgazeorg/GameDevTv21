@@ -5,6 +5,10 @@
 #include <cstdlib>
 #include <ctime>
 
+#include "Types.h"
+
+std::default_random_engine RNG;
+
 int main(int argc, char *argv[]) {
     Gorgon::Initialize("GDTD");
     
