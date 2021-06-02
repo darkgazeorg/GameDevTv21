@@ -17,9 +17,9 @@ public:
     
     static std::map<std::string, TowerType> Towers;
     
-    void Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight, bool disabled);
+    void Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight, bool disabled) const;
     
-    void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
+    void RenderIcon(Gorgon::Graphics::Layer &target, Point location) const;
     
     bool IsPlacable() const {
         return placable;
@@ -27,6 +27,10 @@ public:
     
     int GetCost() const {
         return cost;
+    }
+    
+    const std::vector<std::string> GetUpgrades() const {
+        return upgradesto;
     }
     
 private:
@@ -83,6 +87,16 @@ public:
     //returns scraps
     int Progress(unsigned delta, std::map<long int, Enemy> &enemies);
     
+    void Print(Gorgon::Graphics::Layer &target, Point location, int width);
+    
+    Point GetLocation() const {
+        return location;
+    }
+    
+    const TowerType &GetType() const {
+        return *base;
+    }
+    
 private:
     const TowerType *base;
     Point  location;
@@ -93,4 +107,6 @@ private:
     int construction = 0;
     int reloadloop = 0;
     int nextfire = 0;
+    int kills = 0;
+    int damage = 0;
 };

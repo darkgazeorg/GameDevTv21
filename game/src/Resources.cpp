@@ -136,6 +136,12 @@ bool LoadResources() {
             
             auto str = data.Get<std::string>(10);
             enemy.image = CreateRotations(imagesfold.Get<Gorgon::Graphics::Bitmap>(str), 32);
+            
+            if(data.GetCount() > 11) {
+                str = data.Get<std::string>(11);
+                if(str != "")
+                    enemy.shadow = CreateRotations(imagesfold.Get<Gorgon::Graphics::Bitmap>(str), 32);
+            }
         }
     }
     

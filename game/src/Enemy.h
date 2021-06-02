@@ -44,6 +44,7 @@ protected:
     int scraps;
     int strength;
     Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> image;
+    Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> shadow;
 };
 
 
@@ -120,6 +121,10 @@ public:
         
         hpleft -= damage;
         return false;
+    }
+    
+    EnemyClass GetType() const {
+        return base->type;
     }
     
 private:

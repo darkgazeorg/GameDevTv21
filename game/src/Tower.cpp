@@ -9,7 +9,7 @@ const Size TowerSize = {64, 64};
 
 std::map<std::string, TowerType> TowerType::Towers;
 
-void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight, bool disabled) {
+void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width, bool highlight, bool disabled) const {
     auto &reg = Gorgon::Widgets::Registry::Active();
     auto &printer = reg.Printer();
     
@@ -18,6 +18,7 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     
     if(disabled)
         target.SetColor({1.0f, 0.5f});
+    
     RenderIcon(target, location);
     
     Gorgon::String::AdvancedTextBuilder adv;
@@ -45,7 +46,7 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
         target.SetColor({1.0f});
 }
 
-void TowerType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) {
+void TowerType::RenderIcon(Gorgon::Graphics::Layer &target, Point location) const {
     if(base)
         base->Draw(target, location + Point(TowerSize - base->GetSize())/2);
     
@@ -118,15 +119,31 @@ int Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
         }
     }
     
+    auto cantarget = [this](auto &enemy) {
+        bool cantarget = false;
+        if(IsFlyer(enemy.GetType())) {
+            if((int)base->target&(int)TargetType::Air)
+                cantarget = true;
+        }
+        else {
+            if((int)base->target&(int)TargetType::Ground)
+                cantarget = true;
+        }
+        
+        return cantarget;
+    };
+    
     if(tracktarget == -1) {
         float min = base->range;
         long int ind = -1;
         for(auto &p : enemies) {
             auto dist = p.second.GetLocation().Distance(location) - p.second.GetSize();
             
-            if(dist <= min) {
-                min = dist;
-                ind = p.first;
+            if(dist <= min) {                
+                if(cantarget(p.second)) {
+                    min = dist;
+                    ind = p.first;
+                }
             }
         }
         
@@ -198,11 +215,14 @@ restart:
                 std::vector<long int> eraselist;
                 for(auto &p : enemies) {
                     auto dist = p.second.GetLocation().Distance(bullet.location);
-                    if(dist < base->areasize) {
-                        if(p.second.ApplyDamage(base->damageperbullet * (1 - base->areafalloff * dist / base->areasize), base->damagetype)) {
+                    if(dist < base->areasize && cantarget(p.second)) {
+                        auto damage = (int)std::round(base->damageperbullet * (1 - base->areafalloff * dist / base->areasize));
+                        this->damage += damage;
+                        if(p.second.ApplyDamage(damage, base->damagetype)) {
                             eraselist.push_back(p.first);
                             scraps += p.second.GetScraps();
                             removed = true;
+                            kills++;
                         }
                     }
                 }
@@ -211,11 +231,13 @@ restart:
             }
             else {
                 auto dist = bullet.start.Distance(enemy.GetLocation());
-                
-                if(enemy.ApplyDamage(base->damageperbullet * (1 - base->distancefalloff * dist / base->range), base->damagetype)) {
+                auto damage = (int)std::round(base->damageperbullet * (1 - base->distancefalloff * dist / base->range));
+                this->damage += damage;
+                if(enemy.ApplyDamage(damage, base->damagetype)) {
                     enemies.erase(bullet.target);
                     scraps += enemy.GetScraps();
                     removed = true;
+                    kills++;
                 }
             }
             
@@ -235,3 +257,32 @@ restart:
     return scraps;
 }
 
+void Tower::Print(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point location, int width) {
+    auto &reg = Gorgon::Widgets::Registry::Active();
+    auto &printer = reg.Printer();
+    
+    Gorgon::String::AdvancedTextBuilder adv;
+    adv.UseHeader(Gorgon::Graphics::HeaderLevel::H3);
+    adv.Append(base->name + "\n");
+    adv.UseBoldFont();
+    adv.SetTabWidth(0, 100);
+    adv.UseBoldFont();
+    adv.LineBreak();
+    adv.UseBoldFont();
+    adv.Append("Kills\t\t");
+    adv.UseDefaultFont();
+    adv.Append(kills);
+    adv.LineBreak();
+    adv.UseBoldFont();
+    adv.Append("Damage\t");
+    adv.UseDefaultFont();
+    adv.Append(damage);
+    adv.LineBreak();
+    
+    if(base->upgradesto.size()) {
+        adv.UseHeader(Gorgon::Graphics::HeaderLevel::H3);
+        adv.Append("\nUpgrades: ");
+    }
+    
+    printer.AdvancedPrint(target, adv, location + Point(4, 4), width, true, false);
+}

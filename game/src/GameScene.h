@@ -26,6 +26,7 @@ public:
         topleftpnl(Widgets::Registry::Panel_Blank),
         towerslayer(Widgets::Registry::Layerbox_Blank),
         enemieslayer(Widgets::Registry::Layerbox_Blank),
+        maplayerbox(Widgets::Registry::Layerbox_Blank),
         towerspnl(Widgets::Registry::Panel_Blank),
         enemiespnl(Widgets::Registry::Panel_Blank)
     {
@@ -76,29 +77,45 @@ public:
         towerslayer.GetLayer().Add(towersinput);
         
         towersinput.SetClick([this] (Point location){
-            for(auto l : towerlisting) {
-                if(l.first > location.Y) {
-                    if(TowerType::Towers[l.second].GetCost() < scraps) {
-                        if(buildtower == l.second)
-                            buildtower = "";
-                        else
-                            buildtower = l.second;
+            if(seltower != -1) {
+                for(auto l : towerlisting) {
+                    if(l.first > location.Y) {
+                        if(TowerType::Towers[l.second].GetCost() <= scraps) {
+                            auto pos = towers[seltower].GetLocation();
+                            
+                            towers.erase(towers.begin() + seltower);
+                            towers.push_back(Tower(TowerType::Towers[l.second], pos, !levelinprogress));
+                            scraps -= TowerType::Towers[l.second].GetCost();
+                            seltower = -1;
+                            
+                            break;
+                        }
                     }
-                    else
-                        buildtower = "";
-                    
-                    break;
+                }
+            }
+            else {
+                for(auto l : towerlisting) {
+                    if(l.first > location.Y) {
+                        if(TowerType::Towers[l.second].GetCost() <= scraps) {
+                            if(buildtower == l.second)
+                                buildtower = "";
+                            else {
+                                buildtower = l.second;
+                            }
+                        }
+                        else
+                            buildtower = "";
+                        
+                        break;
+                    }
                 }
             }
         });
         
-        //TODO why doesnt this work!!
-        //maplayer.Add(mapinput);
-        mouse.Add(mapinput);
-        //mouse.Move(maplayer.GetLocation());
-        mouse.SetMove([this](Point location) {
-            //TODO why do we need this!!!!!
-            location -= maplayer.GetLocation();
+        maplayerbox.GetLayer().Add(mapinput);
+        maplayerbox.Move(maplayer.GetLocation());
+        ui.Add(maplayerbox);
+        mapinput.SetMove([this](Point location) {
             Size tilesize = {48, 48};
 
             maphover = (location - map->offset) / tilesize;
@@ -107,16 +124,42 @@ public:
                 maphover = {-1, -1};
         });
         
-        mouse.SetOut([this]() {
+        mapinput.SetOut([this]() {
             maphover = {-1, -1};
         });
         
-        mouse.SetDown([this]() {
+        mapinput.SetDown([this]() {
             if(maphover.X != -1 && buildtower != "" && scraps >= TowerType::Towers[buildtower].GetCost()) {
+                bool found = false;
+                for(auto &tower : towers) {
+                    if(tower.GetLocation() == maphover) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if(found)
+                    return;
+                
                 towers.push_back(Tower(TowerType::Towers[buildtower], maphover, !levelinprogress));
                 
                 scraps -= TowerType::Towers[buildtower].GetCost();
-                buildtower = "";
+                
+                if(scraps < TowerType::Towers[buildtower].GetCost() || Gorgon::Input::Keyboard::CurrentModifier != Gorgon::Input::Keyboard::Modifier::Shift)
+                    buildtower = "";
+            }
+            else if(maphover.X != -1 && buildtower == "") {
+                int ind = 0;
+                for(auto &tower : towers) {
+                    if(tower.GetLocation() == maphover) {
+                        seltower = ind;
+                        return;
+                    }
+                    
+                    ind++;
+                }
+                
+                seltower = -1;
             }
         });
         
@@ -174,7 +217,7 @@ public:
 private:
     virtual void activate() override {
         gamelayer.Resize(maplayer.GetEffectiveBounds().GetSize());
-        mapinput.Resize(maplayer.GetEffectiveBounds().GetSize());
+        maplayerbox.Resize(maplayer.GetEffectiveBounds().GetSize());
         graphics.Clear();
         graphics.Draw(Widgets::Registry::Active().Backcolor(Gorgon::Graphics::Color::Container));
         
@@ -185,22 +228,38 @@ private:
     
     void drawtowers() {
         towersgraphics.Clear();
-        int y = 0;
-        int ind = 0;
-        towerlisting.clear();
-        for(auto &tower : TowerType::Towers) {
-            if(tower.second.IsPlacable()) {
-                if(tower.first == buildtower && tower.second.GetCost() > scraps)
-                    buildtower = "";
-                towerslayer.SetHeight(y + 68);
-                towerlisting[y + 68] = tower.first;
-                
-                tower.second.Print(towersgraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), tower.first == buildtower, tower.second.GetCost() > scraps);
-                y += 68;
-                
+        if(seltower == -1) {
+            int y = 0;
+            towerlisting.clear();
+            for(auto &tower : TowerType::Towers) {
+                if(tower.second.IsPlacable()) {
+                    if(tower.first == buildtower && tower.second.GetCost() > scraps)
+                        buildtower = "";
+                    towerslayer.SetHeight(y + 68);
+                    towerlisting[y + 68] = tower.first;
+                    
+                    tower.second.Print(towersgraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), tower.first == buildtower, tower.second.GetCost() > scraps);
+                    y += 68;
+                    
+                }
             }
+        }
+        else {
+            towerslayer.SetHeight(110);
+            auto &cur = towers[seltower];
+            cur.Print(towersgraphics, {0, 0}, towersgraphics.GetEffectiveBounds().Width());
             
-            ind++;
+            int y = 110;
+            towerlisting.clear();
+            for(auto s : cur.GetType().GetUpgrades()) {
+                auto &tower = TowerType::Towers[s];
+                
+                towerslayer.SetHeight(y + 68);
+                towerlisting[y + 68] = s;
+                if(s != "") {
+                    tower.Print(towersgraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), s == buildtower, tower.GetCost() > scraps);
+                }
+            }
         }
     }
     
@@ -300,7 +359,20 @@ private:
             twr.Render(gamelayer, map->offset, tilesize);
         
         if(maphover.X != -1 && buildtower != "" && (*map)(maphover.X, maphover.Y) == 0) {
-            resources.Root().Get<R::Folder>(2).Get<R::Image>("Target").DrawStretched(maplayer, maphover * tilesize + map->offset, tilesize);
+            bool found = false;
+            for(auto &tower : towers) {
+                if(tower.GetLocation() == maphover) {
+                    found = true;
+                    break;
+                }
+            }
+            
+            if(!found)
+                resources.Root().Get<R::Folder>(2).Get<R::Image>("Target").DrawStretched(gamelayer, maphover * tilesize + map->offset, tilesize);
+        }
+        
+        if(seltower != -1) {
+            resources.Root().Get<R::Folder>(2).Get<R::Image>("Selected").DrawStretched(gamelayer, towers[seltower].GetLocation() * tilesize - Point(4, 4) + map->offset, tilesize+Size(8, 8));
         }
     }
 
@@ -355,6 +427,7 @@ private:
                 
             case Keycode::Escape:
                 buildtower = "";
+                seltower = -1;
                 break;
                 
             case Keycode::Enter:
@@ -394,6 +467,7 @@ private:
     Widgets::Label scraplbl, healthlbl;
     Widgets::Layerbox towerslayer;
     Widgets::Layerbox enemieslayer;
+    Widgets::Layerbox maplayerbox;
     Widgets::Panel towerspnl;
     Widgets::Panel enemiespnl;
     

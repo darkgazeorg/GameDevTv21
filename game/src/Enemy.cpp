@@ -78,11 +78,24 @@ void Enemy::Render(Gorgon::Graphics::Layer& target, Point offset, Gorgon::Geomet
     pnt = pnt * tilesize;
     pnt -= Point(sz / 2);
     
-    base->image[ind].DrawStretched(target, Point(pnt)+offset, sz);
+    if(base->shadow.GetCount()) {
+        base->shadow[ind].DrawStretched(target, Point(pnt)+offset, sz);
+    }
+    
+    if(IsFlyer(base->type)) {
+        base->image[ind].DrawStretched(target, Point(pnt)+offset-Point(tilesize.Width/2, tilesize.Height), sz);
+    }
+    else {
+        base->image[ind].DrawStretched(target, Point(pnt)+offset, sz);
+    }
     
     if(hpleft < base->hitpoints) {
-        target.Draw(Point(pnt) + offset + Point(0, -6), sz.Width, 6, Color::Charcoal);
-        target.Draw(Point(pnt) + offset + Point(1, 1-6), (sz.Width-2) * hpleft / base->hitpoints, 4, Color::Red);
+        Point additionaloff = {0, 0};
+        if(IsFlyer(base->type))
+            additionaloff = {-tilesize.Width/2, -tilesize.Height};
+            
+        target.Draw(Point(pnt) + offset + Point(0, -6)+additionaloff, sz.Width, 6, Color::Charcoal);
+        target.Draw(Point(pnt) + offset + Point(1, 1-6)+additionaloff, (sz.Width-2) * hpleft / base->hitpoints, 4, Color::Red);
     }
 }
 
