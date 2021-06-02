@@ -1,8 +1,8 @@
 Laser Turret
 5
 2
-1
-1
+5
+0
 30
 2
 0
@@ -10,7 +10,7 @@ Laser Turret
 0.0
 10
 LaserTowerL2
-3
+5
 1
 1
 2
