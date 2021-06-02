@@ -1,5 +1,5 @@
-Rocket Turret II
-5
+Rocket Turret III
+7
 2
 2
 1
@@ -8,8 +8,8 @@ Rocket Turret II
 1.8
 0.0
 0.7
-60
-RocketTowerL3
+90
+
 6
 0
 3
@@ -17,9 +17,9 @@ RocketTowerL3
 0.30
 0.2
 (0.25,0.5) (0.75,0.5)
-Base02
+Base03
 
 
-Rocket01
-Expo02
+Rocket03
+Expo05
 1

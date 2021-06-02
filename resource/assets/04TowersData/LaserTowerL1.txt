@@ -1,24 +1,24 @@
-Laser tower
-7
+Laser Turret
+5
 2
 1
 1
 30
 2
 0
+0.5
 0.0
-0.8
 10
 LaserTowerL2
-5
+3
 1
 1
-1
+2
 0.20
 0.2
 (0.5, 0.75)
-
-Tower11
+Base04
+Tower13
 
 Laser01
 Expo04

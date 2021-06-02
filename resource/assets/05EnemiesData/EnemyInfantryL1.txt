@@ -6,7 +6,7 @@ Foot soldier
 0
 0
 0.3
-2
+15
 15
 Infantry01
 
