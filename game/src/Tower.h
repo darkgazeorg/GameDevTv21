@@ -62,6 +62,9 @@ class Bullet {
 public:
     long int target;
     Pointf location;
+    int angle;
+    bool done;
+    Pointf start;
 };
 
 class Tower {
@@ -87,4 +90,6 @@ private:
     std::vector<Bullet> flyingbullets;
     int angle = 0;
     int construction = 0;
+    int reloadloop = 0;
+    int nextfire = 0;
 };

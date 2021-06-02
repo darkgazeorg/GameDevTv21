@@ -85,9 +85,15 @@ void Tower::Render(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point offs
                 
                 Scale(loc, tilesize);
                 auto sz = base->bullet[angle].GetSize() * tilesize / TowerSize;
-                base->bullet[angle].DrawStretched(target, location * tilesize + loc + offset - Point(sz/2), sz);
+                base->bullet[angle].DrawStretched(target, Point(location * tilesize) + loc + offset - Point(sz/2), sz);
+                ind++;
             }
         }
+    }
+    
+    for(auto &bullet : flyingbullets) {
+        auto sz = base->bullet[bullet.angle].GetSize() * tilesize / TowerSize;
+        base->bullet[bullet.angle].DrawStretched(target, Point(bullet.location * tilesize) + offset - Point(sz/2), sz);
     }
 }
 
@@ -97,6 +103,8 @@ void Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
             construction -= delta;
         else
             construction = 0;
+        
+        return;
     }
     
     if(tracktarget != -1) {
@@ -131,6 +139,97 @@ void Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
         auto dif = t.GetLocation() - location;
         
         angle = (int)std::round(atan2(dif.Y, dif.X)/Gorgon::PI*-16+24) % 32;
+        
+    }
+    
+    reloadloop += delta;
+    
+    if(reloadloop > base->reloadtime*1000) {
+        reloadloop -= base->reloadtime*1000;
+        
+        if(currentbullets < base->numberofbullets)
+            currentbullets++;
+        
+        nextfire = 1000 * base->reloadtime / (base->numberofbullets + 1);
+    }
+    
+    if(currentbullets && nextfire < delta && tracktarget != -1) {
+        flyingbullets.push_back({tracktarget, base->bulletlocations[currentbullets-1] + location, angle, false, base->bulletlocations[currentbullets-1] + location});
+        nextfire = 1000 * base->reloadtime / (base->numberofbullets + 1);
+        currentbullets--;
+    }
+    else if(nextfire > 0) {
+        if(nextfire <= delta)
+            nextfire = 0;
+        else
+            nextfire -= delta;
+    }
+    
+    for(auto &bullet : flyingbullets) {
+        bullet.done = false;
+    }
+
+    auto erasegone = [&]() {
+        //remove if the target is gone
+        flyingbullets.erase(
+            std::remove_if(flyingbullets.begin(), flyingbullets.end(), [&](auto &bullet) {
+                return enemies.count(bullet.target) == 0;
+            }), flyingbullets.end()
+        );
+    };
+    
+    erasegone();
+    
+restart:
+    for(auto &bullet : flyingbullets) {
+        if(bullet.done)
+            continue;
+        bullet.done = true;
+        
+        auto &enemy = enemies.at(bullet.target);
+        
+        float dist = base->bulletspeed * delta / 1000;
+        
+        if(dist >= bullet.location.Distance(enemy.GetLocation())) {
+            bool removed = false;
+            
+            if(base->areasize > 0) {
+                bullet.location = enemy.GetLocation();
+                
+                std::vector<long int> eraselist;
+                for(auto &p : enemies) {
+                    auto dist = p.second.GetLocation().Distance(bullet.location);
+                    if(dist < base->areasize) {
+                        if(p.second.ApplyDamage(base->damageperbullet * (1 - base->areafalloff * dist / base->areasize), base->damagetype)) {
+                            eraselist.push_back(p.first);
+                            removed = true;
+                        }
+                    }
+                }
+                for(auto ind : eraselist)
+                    enemies.erase(ind);
+            }
+            else {
+                auto dist = bullet.start.Distance(enemy.GetLocation());
+                
+                if(enemy.ApplyDamage(base->damageperbullet * (1 - base->distancefalloff * dist / base->range), base->damagetype)) {
+                    enemies.erase(bullet.target);
+                    removed = true;
+                }
+            }
+            
+            bullet.target = -1; //no target
+            if(removed) {
+                erasegone();
+                goto restart;
+            }
+        }
+        else {
+            auto norm = (enemy.GetLocation() - bullet.location).Normalize();
+            bullet.angle =  (int)std::round(atan2(norm.Y, norm.X)/Gorgon::PI*-16+24) % 32;
+            
+            bullet.location += norm * dist;
+        }
     }
 }
 
