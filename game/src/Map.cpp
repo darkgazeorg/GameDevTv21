@@ -105,8 +105,9 @@ Map::Map(std::default_random_engine &random)
     int ind = 0;
     for(auto& solution: solutions) {
         auto newsol = StretchUTurns(solution);
+        float distance = solution.front().Distance(solution.back());
         Size pathsize(getsize(newsol) * cellscale);
-        if(mapsize.Width > pathsize.Width && mapsize.Height > pathsize.Height) {
+        if(mapsize.Width > pathsize.Width && mapsize.Height > pathsize.Height && distance >= 5) {
             newsolutions.push_back(newsol);
             int len = 0;
             for(int i=1; i<newsol.size(); i++) {
@@ -116,6 +117,7 @@ Map::Map(std::default_random_engine &random)
             ind++;
         }
     }
+    ASSERT(newsolutions.size() > 0, "failed to generate a path");
 
     std::sort(lengths.begin(), lengths.end(), [] (auto &l, auto &r) {
         return std::abs(l.second - 30) < std::abs(r.second - 30);
