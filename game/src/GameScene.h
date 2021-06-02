@@ -21,12 +21,12 @@ extern R::File resources;
 
 class Game : public Gorgon::Scene {
 public:
-    Game(Gorgon::SceneManager &parent, Gorgon::SceneID id) : 
+    Game(Gorgon::SceneManager &parent, Gorgon::SceneID id, int seed) : 
         Gorgon::Scene(parent, id, true),
         topleftpnl(Widgets::Registry::Panel_Blank),
         towerspnl(Widgets::Registry::Panel_Blank),
         enemiespnl(Widgets::Registry::Panel_Blank)
-    { 
+    {
         graphics.Add(maplayer);
         maplayer.Move(Widgets::Registry::Active()[Widgets::Registry::Panel_Left].GetHeight(), Widgets::Registry::Active()[Widgets::Registry::Panel_Top].GetHeight());
         maplayer.EnableClipping();
@@ -84,13 +84,17 @@ public:
         gamelayer.Move(maplayer.GetLocation());
         gamelayer.EnableClipping();
         
-        Reset();
+        if(seed == -1)
+            seed = Gorgon::PositiveMod(static_cast<int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()), 32000);
+        std::cout << "Seed: " << seed << std::endl;
+        Reset(seed);
     }
     
     ~Game() {
     }
     
-    void Reset() {
+    void Reset(int seed) {
+        random = std::default_random_engine(seed);
         scrap = 40;
         delete map;
         map = new Map(random);
@@ -99,6 +103,8 @@ public:
         auto t = TowerType::Towers.begin();
         std::advance(t, 2);
         twr = new Tower(t->second, {4, 4}, false);
+        gamespeed = 1;
+        paused = false;
     }
     
     void PrepareNextLevel() {
@@ -111,6 +117,7 @@ public:
     void StartNextLevel() {
         levelinprogress = true;
         delayenemies = 0;
+        paused = false;
     }
 
 private:
@@ -152,7 +159,7 @@ private:
         scraplbl.Text = Gorgon::String::From(scrap);
         healthlbl.Text = Gorgon::String::From(health);
         
-        //delta *= 10;
+        delta *= gamespeed * !paused;
 
         twr->Progress(delta, enemies);
         
@@ -191,7 +198,7 @@ private:
                     cnt -= 2;
                 }
                 else {
-                    enemies.emplace(enemyind, Enemy{*grp.enemy, 0, map->Paths[rint(grp.enemy->GetSize().Width-1, 9-grp.enemy->GetSize().Width)]});
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[rint(grp.enemy->GetSize().Width-1, 9-grp.enemy->GetSize().Width)]});
                     cnt--;
                 }
                 
@@ -232,9 +239,53 @@ private:
     }
 
     virtual void KeyEvent(Gorgon::Input::Key key, float press) override {
+        namespace Keycode = Gorgon::Input::Keyboard::Keycodes;
+        
+        if(press) {
+            switch(key) {
+            case Keycode::Number_9:
+            case Keycode::Numpad_Minus:
+                switch(gamespeed) {
+                case 2:
+                    gamespeed = 1;
+                    break;
+                case 3:
+                    gamespeed = 2;
+                    break;
+                case 5:
+                    gamespeed = 3;
+                    break;
+                case 8:
+                    gamespeed = 5;
+                    break;
+                }
+                break;
+                
+            case Keycode::Number_0:
+            case Keycode::Numpad_Plus:
+                switch(gamespeed) {
+                case 1:
+                    gamespeed = 2;
+                    break;
+                case 2:
+                    gamespeed = 3;
+                    break;
+                case 3:
+                    gamespeed = 5;
+                    break;
+                case 5:
+                    gamespeed = 8;
+                    break;
+                }
+                break;
+                
+            case Keycode::Space:
+                paused = !paused;
+            }
+        }
     }
     
-    std::default_random_engine random = std::default_random_engine{static_cast<long unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count())};
+    std::default_random_engine random = std::default_random_engine{0};
     
     bool inithack = LoadResources();
     
@@ -255,6 +306,9 @@ private:
     Widgets::Layerbox enemieslayer;
     Widgets::Panel towerspnl;
     Widgets::Panel enemiespnl;
+    
+    int gamespeed = 1;
+    bool paused   = false;
     
     Gorgon::Graphics::Bitmap scrapicon, healthicon;
     

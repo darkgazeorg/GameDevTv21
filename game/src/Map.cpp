@@ -78,6 +78,8 @@ TileIndex corners[8][3][3] = {
 Map::Map(std::default_random_engine &random) 
     : tileset(tiles[std::uniform_int_distribution<int>(0, ::tilesets.GetSize()-1)(random)])
 {
+    int seed = std::uniform_int_distribution<int>(0, 32000)(random);
+    srand(seed);
     mapsize = {33, 21};
     
     std::fill_n(std::back_inserter(map), mapsize.Area(), 0);

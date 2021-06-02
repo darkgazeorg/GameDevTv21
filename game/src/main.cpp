@@ -5,15 +5,19 @@
 #include <cstdlib>
 #include <ctime>
 
-int main() {
-    std::srand(std::time(nullptr));
-
+int main(int argc, char *argv[]) {
     Gorgon::Initialize("GDTD");
     
     Gorgon::SceneManager scenemanager(Gorgon::SceneManager::Fullscreen, "GDTD");
     Gorgon::UI::Initialize();
     
-    scenemanager.NewScene<Game>(GameScene);
+    int seed = -1;
+    
+    if(argc > 1) {
+        seed = atoi(argv[1]);
+    }
+    
+    scenemanager.NewScene<Game>(GameScene, seed);
     scenemanager.SwitchScene(GameScene);
     
     scenemanager.Run();

@@ -97,5 +97,13 @@ void Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
         else
             construction = 0;
     }
+    
+    if(tracktarget != -1) {
+        //TODO check if we can still track this target
+    }
+    
+    if(tracktarget == -1) {
+        
+    }
 }
 
