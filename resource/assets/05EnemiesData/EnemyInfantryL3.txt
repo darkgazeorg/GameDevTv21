@@ -6,7 +6,7 @@ Special Forces Soldier
 1
 1
 0.5
-20
+30
 40
 Infantry03
 

@@ -6,7 +6,7 @@ Bomber
 -5
 0
 0.5
-20
+80
 50
 Bomber
 BomberShadow

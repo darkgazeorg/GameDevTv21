@@ -6,7 +6,7 @@ Light Tank
 6
 2
 0.5
-20
+50
 90
 Tank08
 
