@@ -244,8 +244,8 @@ restart:
                 auto damage = (int)std::round(base->damageperbullet * (1 - base->distancefalloff * dist / base->range));
                 this->damage += damage;
                 if(enemy.ApplyDamage(damage, base->damagetype)) {
-                    enemies.erase(bullet.target);
                     scraps += enemy.GetScraps();
+                    enemies.erase(bullet.target);
                     removed = true;
                     kills++;
                 }
