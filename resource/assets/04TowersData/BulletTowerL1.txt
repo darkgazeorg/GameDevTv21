@@ -9,7 +9,7 @@ Bullet tower
 0.3
 0.0
 10
-
+BulletTowerL2
 4
 1
 3

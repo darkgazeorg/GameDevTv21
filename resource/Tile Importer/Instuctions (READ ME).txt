@@ -14,6 +14,7 @@ Text file contains integer, float, string values that correlate to the following
 9- scraps int
 10- strength int
 11- Image string
+12- Image shadow String
 
 
 Towers:
