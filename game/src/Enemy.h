@@ -23,10 +23,8 @@ public:
     
     void RenderIcon(Gorgon::Graphics::Layer &target, Point location);
     
-    //in halfsizes
-    Size GetSize() const {
-        auto sz = Sizef(image[0].GetSize()) / (EnemySize / 2);
-        return {int(std::ceil(sz.Width)), int(std::ceil(sz.Height))};
+    Sizef GetSize() const {
+        return Sizef(image[0].GetSize()) / EnemySize;
     }
     
     float GetSpeed() const {
@@ -79,6 +77,8 @@ public:
         path(&path)
     { 
         hpleft = base->hitpoints;
+        auto sz = base->GetSize();
+        size = (sz.Width+sz.Height) / 4.f;
     }
     
     //offset is the offset of the map
@@ -87,6 +87,17 @@ public:
     //returns the damage if the enemy reaches to the end. Otherwise returns 0.
     int Progress(int delta);
     
+    float GetSize() const {
+        return size;
+    }
+    
+    Pointf GetLocation() const {
+        auto st = (*path)[locationpoint];
+        auto ed = path->GetLine(locationpoint).End;
+        Pointf pnt = (st * (1-offsetfrompoint) + ed * offsetfrompoint);
+        return pnt;
+    }
+    
 private:
     const EnemyType *base;
     int groupind;
@@ -94,4 +105,5 @@ private:
     int locationpoint   = 0;
     float offsetfrompoint = 0;
     float hpleft;
+    float size;
 };

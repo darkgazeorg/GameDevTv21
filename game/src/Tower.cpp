@@ -3,6 +3,7 @@
 #include <Gorgon/Widgets/Registry.h>
 #include <Gorgon/Resource/Image.h>
 #include <Gorgon/String/AdvancedTextBuilder.h>
+#include "Enemy.h"
 
 const Size TowerSize = {64, 64};
 
@@ -99,11 +100,37 @@ void Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
     }
     
     if(tracktarget != -1) {
-        //TODO check if we can still track this target
+        if(!enemies.count(tracktarget)) {
+            tracktarget = -1;
+        }
+        else {
+            auto &t = enemies.at(tracktarget);
+            if(t.GetLocation().Distance(location) - t.GetSize() > base->range) {
+                tracktarget = -1;
+            }
+        }
     }
     
     if(tracktarget == -1) {
+        float min = base->range;
+        long int ind = -1;
+        for(auto &p : enemies) {
+            auto dist = p.second.GetLocation().Distance(location) - p.second.GetSize();
+            
+            if(dist <= min) {
+                min = dist;
+                ind = p.first;
+            }
+        }
         
+        tracktarget = ind;
+    }
+    
+    if(tracktarget != -1) {
+        auto &t = enemies.at(tracktarget);
+        auto dif = t.GetLocation() - location;
+        
+        angle = (int)std::round(atan2(dif.Y, dif.X)/Gorgon::PI*-16+24) % 32;
     }
 }
 
