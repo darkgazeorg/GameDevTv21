@@ -78,6 +78,9 @@ public:
         
         towersinput.SetClick([this] (Point location){
             if(seltower != -1) {
+                if(towers[seltower].UnderConstruction())
+                    return;
+                
                 for(auto l : towerlisting) {
                     if(l.first > location.Y) {
                         if(TowerType::Towers[l.second].GetCost() <= scraps) {
@@ -129,7 +132,10 @@ public:
         });
         
         mapinput.SetDown([this]() {
-            if(maphover.X != -1 && buildtower != "" && scraps >= TowerType::Towers[buildtower].GetCost()) {
+            if(maphover.X != -1 && buildtower != "" && 
+               scraps >= TowerType::Towers[buildtower].GetCost() && 
+               (*map)(maphover.X, maphover.Y) == 0
+            ) {
                 bool found = false;
                 for(auto &tower : towers) {
                     if(tower.GetLocation() == maphover) {
@@ -148,7 +154,7 @@ public:
                 if(scraps < TowerType::Towers[buildtower].GetCost() || Gorgon::Input::Keyboard::CurrentModifier != Gorgon::Input::Keyboard::Modifier::Shift)
                     buildtower = "";
             }
-            else if(maphover.X != -1 && buildtower == "") {
+            else if(maphover.X != -1) {
                 int ind = 0;
                 for(auto &tower : towers) {
                     if(tower.GetLocation() == maphover) {
@@ -249,15 +255,17 @@ private:
             auto &cur = towers[seltower];
             cur.Print(towersgraphics, {0, 0}, towersgraphics.GetEffectiveBounds().Width());
             
-            int y = 110;
-            towerlisting.clear();
-            for(auto s : cur.GetType().GetUpgrades()) {
-                auto &tower = TowerType::Towers[s];
-                
-                towerslayer.SetHeight(y + 68);
-                towerlisting[y + 68] = s;
-                if(s != "") {
-                    tower.Print(towersgraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), s == buildtower, tower.GetCost() > scraps);
+            if(!cur.UnderConstruction()) {            
+                int y = 110;
+                towerlisting.clear();
+                for(auto s : cur.GetType().GetUpgrades()) {
+                    auto &tower = TowerType::Towers[s];
+                    
+                    towerslayer.SetHeight(y + 68);
+                    towerlisting[y + 68] = s;
+                    if(s != "") {
+                        tower.Print(towersgraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), s == buildtower, tower.GetCost() > scraps);
+                    }
                 }
             }
         }

@@ -97,6 +97,10 @@ public:
         return *base;
     }
     
+    bool UnderConstruction() const {
+        return construction != 0;
+    }
+    
 private:
     const TowerType *base;
     Point  location;
