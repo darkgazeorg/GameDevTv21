@@ -172,9 +172,9 @@ std::vector<Point> ConnectEnteranceToEdge(std::vector<Point> path, Size pathsize
         [] (Point enterance, Size pathsize, Size mapsize)
             {return ((pathsize.Width - 1) - enterance.X) + ((mapsize.Width - pathsize.Width) / 2 + 1);},
         [] (Point enterance, Size pathsize, Size mapsize)
-            {return (enterance.X) + ((mapsize.Width - pathsize.Width) / 2 + 1);},
+            {return (enterance.X) + ((mapsize.Width - pathsize.Width) / 2 );},
         [] (Point enterance, Size pathsize, Size mapsize)
-            {return (enterance.Y) + ((mapsize.Height - pathsize.Height) / 2 + 1);},
+            {return (enterance.Y) + ((mapsize.Height - pathsize.Height) / 2);},
         [] (Point enterance, Size pathsize, Size mapsize)
             {return ((pathsize.Height - 1) - enterance.Y) + ((mapsize.Height - pathsize.Height) / 2 + 1);},
     };
