@@ -113,14 +113,14 @@ Map::Map(std::default_random_engine &random)
             for(int i=1; i<newsol.size(); i++) {
                 len += newsol[i].ManhattanDistance(newsol[i-1]);
             }
-            lengths.push_back({ind, len});
+            lengths.push_back({ind, std::abs(len-30) + abs(distance-6)*4});
             ind++;
         }
     }
     ASSERT(newsolutions.size() > 0, "failed to generate a path");
 
     std::sort(lengths.begin(), lengths.end(), [] (auto &l, auto &r) {
-        return std::abs(l.second - 30) < std::abs(r.second - 30);
+        return l.second < l.second;
     });
 
     auto solution = newsolutions[lengths[0].first];
@@ -288,12 +288,20 @@ Map::Map(std::default_random_engine &random)
         }
     }
     
+    curves.push_back({});
+    Pointf avg = {0, 0};
+    for(int i=0; i<curves[0].GetCount(); i++) {
+        avg += curves[0][i].P0;
+    }
+    avg /= curves[0].GetCount();
+    curves.back().SetStartingPoint(curves[5][0].P0);
+    curves.back().Push(avg, curves[5][curves[0].GetCount()-1].P3);
+    
     //flatten
     Paths.Destroy();
     for(auto &curve : curves) {
-        Paths.AddNew(curve.Flatten(0.05));
+        Paths.AddNew(curve.Flatten(0.025));
     }
-    Paths.AddNew(Gorgon::Geometry::PointList<>{Paths[0].Front(), Paths[0].Back()});
 
     debug.Resize(mapsize * tilesize);
     debug.Clear();

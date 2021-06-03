@@ -69,7 +69,8 @@ int randint(std::default_random_engine &random, int min, int max) {
 }
 
 bool Enemy::ApplyDamage(int damage, DamageType type) {
-    if(std::uniform_real_distribution<float>()(RNG) < base->evasion)
+    float evaderoll = std::uniform_real_distribution<float>()(RNG);
+    if(evaderoll < base->evasion)
         return false;
     
     switch(type) {
@@ -83,6 +84,9 @@ bool Enemy::ApplyDamage(int damage, DamageType type) {
         damage -= base->shield;
         break;
     }
+    
+    if(damage <= 0)
+        damage = 1;
 
     if(hpleft <= damage)
         return true;

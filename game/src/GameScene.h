@@ -315,6 +315,7 @@ private:
                 int &cnt = grp.count;
                 if(IsFlyer(grp.enemy->GetType())) {
                     enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[9]});
+                    cnt--;
                 }
                 else if(grp.inrow == 3 && cnt >= 3) {
                     enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[1]});
