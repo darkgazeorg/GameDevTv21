@@ -35,6 +35,10 @@ public:
     
     void DrawRange(Gorgon::Graphics::Layer &target, Point offset, Size tilesize);
     
+    float DPS() const {
+        return round(damageperbullet*(continuousreload ? 1 : numberofbullets) / reloadtime*10) / 10;
+    }
+    
 private:
     std::string id;
     std::string name;

@@ -266,6 +266,7 @@ private:
                     towerlisting[y + 68] = s;
                     if(s != "") {
                         tower.Print(towersgraphics, {0, y}, towersgraphics.GetEffectiveBounds().Width(), s == buildtower, tower.GetCost() > scraps);
+                        y += 68;
                     }
                 }
             }

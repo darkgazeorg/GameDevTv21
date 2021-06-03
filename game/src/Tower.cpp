@@ -38,7 +38,7 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
         adv.UseDefaultColor();
     adv.Append("DPS\t");
     adv.UseDefaultFont();
-    adv.Append(round(damageperbullet / reloadtime*10) / 10);
+    adv.Append(DPS());
     adv.LineBreak();
     
     printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
@@ -318,7 +318,7 @@ void Tower::Print(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point locat
         adv.UseBoldFont()
            .Append("DPS\t\t")
            .UseDefaultFont()
-           .Append(round(base->damageperbullet / base->reloadtime*10) / 10)
+           .Append(base->DPS())
            .LineBreak()
            .UseBoldFont()
            .Append("Kills\t\t")
