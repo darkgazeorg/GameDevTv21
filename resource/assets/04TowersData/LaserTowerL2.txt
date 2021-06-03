@@ -9,7 +9,7 @@ Laser Turret II
 0.40
 0.00
 30
-LaserTowerL3.txt
+LaserTowerL3
 5.00
 0
 1
@@ -17,9 +17,9 @@ LaserTowerL3.txt
 0.30
 0.00
 (0.5, 0.75)
+Base02
+Tower13
 
-Tower11
-
-Laser02
+Laser01
 Expo04
 0

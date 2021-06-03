@@ -366,14 +366,15 @@ private:
         Size tilesize = {48, 48};
         
         gamelayer.Clear();
-        for(auto &enemy : enemies)
-            enemy.second.Render(gamelayer, map->offset, tilesize);
         
         int ind = 0;
         for(auto &twr : towers) {
             twr.Render(gamelayer, map->offset, tilesize, seltower == ind || buildtower != "");
             ind++;
         }
+        
+        for(auto &enemy : enemies)
+            enemy.second.Render(gamelayer, map->offset, tilesize);
         
         if(maphover.X != -1 && buildtower != "" && (*map)(maphover.X, maphover.Y) == 0) {
             bool found = false;

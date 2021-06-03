@@ -1,6 +1,6 @@
-Mortar
-3
-1.90
+Mortar tower
+4
+2.10
 1
 0
 5.00
@@ -8,18 +8,18 @@ Mortar
 2.00
 0.00
 0.90
-10
+15
 
 5.00
 1
 1
 1
 0.30
-0.20
+1.00
 (0.5, 0.75)
 Base01
 Tower05
 Fire02
-Bullet03
+Fire01
 Expo05
 0

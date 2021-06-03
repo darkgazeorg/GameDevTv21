@@ -69,7 +69,7 @@ bool LoadResources() {
             
             tower.id                = ret.first->first;
             tower.name              = data.Get<std::string>(0);
-            tower.damageperbullet   = data.Get<int>(1);
+            tower.damageperbullet   = data.Get<float>(1);
             tower.reloadtime        = data.Get<float>(2);
             tower.numberofbullets   = data.Get<int>(3);
             tower.continuousreload  = data.Get<int>(4);

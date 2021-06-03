@@ -268,7 +268,7 @@ restart:
                 for(auto &p : enemies) {
                     auto dist = p.second.GetLocation().Distance(bullet.location) + (IsFlyer(p.second.GetType()) != IsFlyer(enemy.GetType()));
                     if(dist < base->areasize && cantarget(p.second)) {
-                        auto damage = (int)std::round(base->damageperbullet * (1 - base->areafalloff * dist / base->areasize));
+                        auto damage = base->damageperbullet * (1 - base->areafalloff * dist / base->areasize);
                         if(p.second.ApplyDamage(damage, base->damagetype)) {
                             eraselist.push_back(p.first);
                             scraps += p.second.GetScraps();
@@ -283,7 +283,7 @@ restart:
             }
             else {
                 auto dist = bullet.start.Distance(bullet.location);
-                auto damage = (int)std::round(base->damageperbullet * (1 - base->distancefalloff * dist / base->range));
+                auto damage = base->damageperbullet * (1 - base->distancefalloff * dist / base->range);
                 if(enemy.ApplyDamage(damage, base->damagetype)) {
                     scraps += enemy.GetScraps();
                     enemies.erase(bullet.target);

@@ -106,7 +106,7 @@ public:
         return base->scraps;
     }
     
-    bool ApplyDamage(int &damage, DamageType type);
+    bool ApplyDamage(float &damage, DamageType type);
     
     EnemyClass GetType() const {
         return base->type;

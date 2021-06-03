@@ -42,7 +42,7 @@ public:
 private:
     std::string id;
     std::string name;
-    int damageperbullet;
+    float damageperbullet;
     float reloadtime;
     int numberofbullets;
     bool continuousreload;
@@ -121,5 +121,5 @@ private:
     int reloadloop = 0;
     int nextfire = 0;
     int kills = 0;
-    long int damage = 0;
+    float damage = 0;
 };

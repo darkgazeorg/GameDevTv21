@@ -137,7 +137,7 @@ void doimport(int scale) {
 
                     auto name = FS::GetBasename(file_name);
                     std::string txtname = ""; //Tower ID
-                    int dpb = 0; //damage per bullet
+                    float dpb = 0; //damage per bullet
                     float reloadt = 0.0; //reload time
                     int bcapacity = 0; //bullet capacity
                     int cr = 0; //Continuious reload
@@ -174,7 +174,7 @@ void doimport(int scale) {
 
                         std::getline(dataf, line);
                         if(!line.empty())
-                            dpb = String::To<int>(line);
+                            dpb = String::To<float>(line);
                         
                         std::getline(dataf, line);
                         if(!line.empty())
