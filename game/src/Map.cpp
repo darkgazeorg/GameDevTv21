@@ -110,7 +110,7 @@ Map::Map(std::default_random_engine &random)
         auto newsol = StretchUTurns(solution);
         float distance = solution.front().Distance(solution.back());
         Size pathsize(getsize(newsol));
-        if(mapsize.Width > pathsize.Width && mapsize.Height > pathsize.Height && distance >= 15) {
+        if(mapsize.Width > pathsize.Width + 2 && mapsize.Height > pathsize.Height + 2 && distance >= 15) {
             newsolutions.push_back(newsol);
             int len = 0;
             for(int i=1; i<newsol.size(); i++) {
@@ -329,5 +329,5 @@ void Map::Render(Gorgon::Graphics::Layer &target) {
             tileset[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
         }
     }
-    debug.Draw(target, offset);
+    //debug.Draw(target, offset);
 }

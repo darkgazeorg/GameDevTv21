@@ -130,7 +130,7 @@ std::vector<Point> StretchUTurns(std::vector<Point> orgpath) {
                                       [resolvedirection(*next, *afternext)]
                                       [resolvedirection(*afternext, *(current + 3))];
         if(stretchdir != Direction::End) {
-            Point shift = shiftamounts[stretchdir];
+            Point shift = shiftamounts[stretchdir] * (rand()%4+1);
             static const DirArray<std::function<bool(Point, Point)>> shiftcheckers = {
                 [] (Point current, Point point) {return point.X > current.X;},
                 [] (Point current, Point point) {return point.X < current.X;},

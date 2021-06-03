@@ -209,7 +209,7 @@ int Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
     }
     
     if(currentbullets && nextfire < delta && tracktarget != -1) {
-        flyingbullets.push_back({tracktarget, base->bulletlocations[(currentbullets-1)%base->bulletlocations.size()] + location, angle, false, base->bulletlocations[currentbullets-1] + location, base->bulletacceleration == 0 ? base->bulletspeed : 0});
+        flyingbullets.push_back({tracktarget, base->bulletlocations[(currentbullets-1)%base->bulletlocations.size()] + location, angle, false, base->bulletlocations[(currentbullets-1)%base->bulletlocations.size()] + location, base->bulletacceleration == 0 ? base->bulletspeed : 0});
         nextfire = 1000 * base->reloadtime / (base->numberofbullets * (1+(base->continuousreload==0)) + 1);
         currentbullets--;
     }

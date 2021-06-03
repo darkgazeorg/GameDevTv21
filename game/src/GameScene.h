@@ -45,7 +45,7 @@ public:
         topleftpnl.SetHeight(ui.GetUnitWidth());
         topleftpnl.Move(ui.GetSpacing(), ui.GetSpacing());
         topleftpnl.EnableScroll(false, false);
-        topleftpnl.SetWidthInUnits(20);
+        topleftpnl.SetWidthInUnits(30);
         
         nextwave.Text = "Next wave";
         nextwave.ClickEvent.Register(*this, &Game::StartNextLevel);
@@ -62,10 +62,12 @@ public:
         healthlbl.SetIcon(healthicon);
         healthlbl.Text = Gorgon::String::From(health);
         
+        levellbl.Text = "**Level:** 1";
+        
         
         
         nextwave.SetHeight(ui.GetUnitWidth());
-        org << nextwave << 1 << " " << scraplbl << 1 << " " << healthlbl;
+        org << nextwave << 1 << " " << 5 << scraplbl << 1 << " " << 3 << healthlbl << 1 << " " << 3 << levellbl;
         
         ui.Add(towerspnl);
         towerspnl.SetHeight((ui.GetHeight() - maplayer.GetTop() - ui.GetSpacing())/2);
@@ -213,12 +215,15 @@ public:
         wave = Wave(curstr, RNG);
         drawenemies();
         level++;
+        levellbl.Text = "**Level:** " + Gorgon::String::From(level);
+        nextwave.Enable();
     }
     
     void StartNextLevel() {
         levelinprogress = true;
         delayenemies = 0;
         paused = false;
+        nextwave.Disable();
     }
 
 private:
@@ -300,7 +305,7 @@ private:
                 auto ret = enemy.Progress(delta);
                 
                 if(ret > 0) {
-                    health -= ret/5;
+                    health -= ret;
                     enemiestodel.push_back(p.first);
                 }
                 
@@ -484,6 +489,7 @@ private:
     Widgets::Panel topleftpnl;
     Widgets::Button quit, nextwave;
     Widgets::Label scraplbl, healthlbl;
+    Widgets::MarkdownLabel levellbl;
     Widgets::Layerbox towerslayer;
     Widgets::Layerbox enemieslayer;
     Widgets::Layerbox maplayerbox;
