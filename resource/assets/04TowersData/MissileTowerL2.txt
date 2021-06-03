@@ -1,15 +1,15 @@
-Missile Turret
-26
-2.40
+Missile Turret II
+37
+2.50
 1
 1
-5.00
+5.50
 1
-1.25
+1.40
 0.00
 0.70
-45
-MissileTowerL2
+70
+
 7.50
 0
 2

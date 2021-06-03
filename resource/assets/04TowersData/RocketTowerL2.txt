@@ -1,6 +1,6 @@
 Rocket Turret II
-6.7
-2.10
+6.2
+2.00
 2
 1
 6.00
@@ -8,8 +8,8 @@ Rocket Turret II
 2.00
 0.00
 0.70
-45
-RocketTowerL3
+40
+RocketTowerL3,Swarm
 5.50
 0
 3

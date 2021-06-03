@@ -1,5 +1,5 @@
 Cannon Turret II
-8
+7.5
 1.00
 1
 0
