@@ -9,7 +9,7 @@ Cannon Turret
 0.20
 0.00
 10
-BulletTowerL2
+BulletTowerL2,Flak
 4.00
 1
 3

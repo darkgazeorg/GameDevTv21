@@ -104,16 +104,19 @@ Map::Map(std::default_random_engine &random)
     std::vector<std::pair<int, int>> lengths;
     int ind = 0;
     for(auto& solution: solutions) {
+        for(auto&p : solution) {
+            p *= cellscale;
+        }
         auto newsol = StretchUTurns(solution);
         float distance = solution.front().Distance(solution.back());
-        Size pathsize(getsize(newsol) * cellscale);
-        if(mapsize.Width > pathsize.Width && mapsize.Height > pathsize.Height && distance >= 5) {
+        Size pathsize(getsize(newsol));
+        if(mapsize.Width > pathsize.Width && mapsize.Height > pathsize.Height && distance >= 15) {
             newsolutions.push_back(newsol);
             int len = 0;
             for(int i=1; i<newsol.size(); i++) {
                 len += newsol[i].ManhattanDistance(newsol[i-1]);
             }
-            lengths.push_back({ind, std::abs(len-30) + abs(distance-6)*2});
+            lengths.push_back({ind, std::abs(len-90) + abs(distance-6)*2});
             ind++;
         }
     }
@@ -124,13 +127,13 @@ Map::Map(std::default_random_engine &random)
     });
 
     auto solution = newsolutions[lengths[0].first];
-    Size pathsize(getsize(solution) * cellscale);
-    solution = ConnectEnteranceToEdge(solution, pathsize / cellscale, mapsize / cellscale);
-    xoffset = (mapsize.Width - pathsize.Width) / 2 + 1;
-    yoffset = (mapsize.Height - pathsize.Height) / 2 + 1;
+    Size pathsize(getsize(solution));
+    solution = ConnectEnteranceToEdge(solution, pathsize, mapsize);
+    xoffset = (mapsize.Width - pathsize.Width) / 2;
+    yoffset = (mapsize.Height - pathsize.Height) / 2;
     Gorgon::Geometry::PointList<Point> points;
     for(auto point : solution) {
-        points.Push({point.X * cellscale + xoffset, point.Y * cellscale + yoffset});
+        points.Push({point.X + xoffset, point.Y + yoffset});
     }
 
     //flatten point list

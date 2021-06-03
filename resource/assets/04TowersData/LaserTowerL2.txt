@@ -1,15 +1,15 @@
 Laser Turret II
-9
-3.75
+7.2
+3.00
 5
 0
 30.00
-2
+3
 0.00
 0.40
 0.00
 30
-LaserTowerL3
+PulseLaser,Beam
 5.00
 0
 1
