@@ -252,12 +252,12 @@ private:
             }
         }
         else {
-            towerslayer.SetHeight(110);
+            towerslayer.SetHeight(5*Gorgon::Widgets::Registry::Active().Printer().GetHeight());
             auto &cur = towers[seltower];
             cur.Print(towersgraphics, {0, 0}, towersgraphics.GetEffectiveBounds().Width());
             
             if(!cur.UnderConstruction()) {            
-                int y = 110;
+                int y = 5*Gorgon::Widgets::Registry::Active().Printer().GetHeight();
                 towerlisting.clear();
                 for(auto s : cur.GetType().GetUpgrades()) {
                     auto &tower = TowerType::Towers[s];

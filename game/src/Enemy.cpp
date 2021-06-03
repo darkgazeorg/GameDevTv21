@@ -26,6 +26,16 @@ void EnemyType::Print(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point l
     adv.Append("HP \t\t");
     adv.UseDefaultFont();
     adv.Append(hitpoints);
+    
+    if(evasion > 0) {
+        adv.SetFont(Gorgon::Graphics::NamedFont::BoldScript)
+           .SetColor(Color::DarkGrey)
+           .Append(" (Evasive: ")
+           .Append((int)std::round(evasion*100))
+           .Append("%)")
+           .UseDefaultColor()
+        ;
+    }
     adv.UseBoldFont();
     adv.LineBreak();
     adv.Append("Armor\t");
@@ -35,6 +45,8 @@ void EnemyType::Print(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point l
     adv.Append(reactivearmor);
     adv.Append("/");
     adv.Append(shield);
+    adv.SetFont(Gorgon::Graphics::NamedFont::SmallScript)
+       .Append(" (phy/exp/lasr)");
     
     printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
 }
