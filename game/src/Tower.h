@@ -76,6 +76,7 @@ public:
     int angle;
     bool done;
     Pointf start;
+    float speed;
 };
 
 class Tower {
@@ -120,5 +121,5 @@ private:
     int reloadloop = 0;
     int nextfire = 0;
     int kills = 0;
-    int damage = 0;
+    long int damage = 0;
 };

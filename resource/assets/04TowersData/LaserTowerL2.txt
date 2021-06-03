@@ -1,6 +1,6 @@
 Laser Turret II
-10
-4.00
+9
+3.75
 5
 0
 30.00
@@ -9,13 +9,13 @@ Laser Turret II
 0.40
 0.00
 30
-LaserTowerL3
-6.00
+LaserTowerL3.txt
+5.00
 0
 1
 2
 0.30
-0.20
+0.00
 (0.5, 0.75)
 
 Tower11

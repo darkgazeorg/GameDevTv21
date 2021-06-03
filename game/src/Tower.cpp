@@ -189,7 +189,7 @@ int Tower::Progress(unsigned delta, std::map<long, Enemy>& enemies) {
     }
     
     if(currentbullets && nextfire < delta && tracktarget != -1) {
-        flyingbullets.push_back({tracktarget, base->bulletlocations[(currentbullets-1)%base->bulletlocations.size()] + location, angle, false, base->bulletlocations[currentbullets-1] + location});
+        flyingbullets.push_back({tracktarget, base->bulletlocations[(currentbullets-1)%base->bulletlocations.size()] + location, angle, false, base->bulletlocations[currentbullets-1] + location, base->bulletacceleration == 0 ? base->bulletspeed : 0});
         nextfire = 1000 * base->reloadtime / (base->numberofbullets * (1+(base->continuousreload==0)) + 1);
         currentbullets--;
     }
@@ -234,11 +234,17 @@ restart:
     for(auto &bullet : flyingbullets) {
         if(bullet.done)
             continue;
+        
         bullet.done = true;
+        
+        if(bullet.speed + base->bulletspeed * base->bulletacceleration * delta / 1000 >= base->bulletspeed)
+            bullet.speed = base->bulletspeed;
+        else
+            bullet.speed += base->bulletspeed * base->bulletacceleration * delta / 1000;
         
         auto &enemy = enemies.at(bullet.target);
         
-        float dist = base->bulletspeed * delta / 1000;
+        float dist = bullet.speed * delta / 1000;
         
         if(dist >= bullet.location.Distance(enemy.GetLocation())) {
             bool removed = false;
@@ -255,13 +261,13 @@ restart:
                     auto dist = p.second.GetLocation().Distance(bullet.location);
                     if(dist < base->areasize && cantarget(p.second)) {
                         auto damage = (int)std::round(base->damageperbullet * (1 - base->areafalloff * dist / base->areasize));
-                        this->damage += damage;
                         if(p.second.ApplyDamage(damage, base->damagetype)) {
                             eraselist.push_back(p.first);
                             scraps += p.second.GetScraps();
                             removed = true;
                             kills++;
                         }
+                        this->damage += damage;
                     }
                 }
                 for(auto ind : eraselist)
@@ -270,13 +276,13 @@ restart:
             else {
                 auto dist = bullet.start.Distance(enemy.GetLocation());
                 auto damage = (int)std::round(base->damageperbullet * (1 - base->distancefalloff * dist / base->range));
-                this->damage += damage;
                 if(enemy.ApplyDamage(damage, base->damagetype)) {
                     scraps += enemy.GetScraps();
                     enemies.erase(bullet.target);
                     removed = true;
                     kills++;
                 }
+                this->damage += damage;
             }
             
             bullet.target = -1; //no target

@@ -113,14 +113,14 @@ Map::Map(std::default_random_engine &random)
             for(int i=1; i<newsol.size(); i++) {
                 len += newsol[i].ManhattanDistance(newsol[i-1]);
             }
-            lengths.push_back({ind, std::abs(len-30) + abs(distance-6)*4});
+            lengths.push_back({ind, std::abs(len-30) + abs(distance-6)*2});
             ind++;
         }
     }
     ASSERT(newsolutions.size() > 0, "failed to generate a path");
 
     std::sort(lengths.begin(), lengths.end(), [] (auto &l, auto &r) {
-        return l.second < l.second;
+        return l.second < r.second;
     });
 
     auto solution = newsolutions[lengths[0].first];

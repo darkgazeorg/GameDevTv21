@@ -68,10 +68,12 @@ int randint(std::default_random_engine &random, int min, int max) {
     return std::uniform_int_distribution<int>(min, max)(random);
 }
 
-bool Enemy::ApplyDamage(int damage, DamageType type) {
+bool Enemy::ApplyDamage(int &damage, DamageType type) {
     float evaderoll = std::uniform_real_distribution<float>()(RNG);
-    if(evaderoll < base->evasion)
+    if(evaderoll < base->evasion) {
+        damage = 0;
         return false;
+    }
     
     switch(type) {
     case DamageType::Knetic:
