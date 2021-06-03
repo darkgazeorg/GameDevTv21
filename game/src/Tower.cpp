@@ -32,6 +32,20 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     adv.Append("Cost\t");
     adv.UseDefaultFont();
     adv.Append(cost);
+    if(this->target == TargetType::Air) {
+        adv.SetFont(Gorgon::Graphics::NamedFont::BoldScript)
+           .SetColor(Color::Blue)
+           .Append(" (Air)")
+           .UseDefaultColor()
+        ;
+    }
+    if(this->target == TargetType::Ground) {
+        adv.SetFont(Gorgon::Graphics::NamedFont::BoldScript)
+           .SetColor(Color::Red)
+           .Append(" (Ground)")
+           .UseDefaultColor()
+        ;
+    }
     adv.LineBreak();
     adv.UseBoldFont();
     if(disabled)
@@ -39,14 +53,12 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     adv.Append("DPS\t");
     adv.UseDefaultFont();
     adv.Append(DPS());
-    if(this->target == TargetType::Air) {
-        adv.SetFont(Gorgon::Graphics::NamedFont::BoldScript)
-           .Append(" (Air)");
-    }
-    if(this->target == TargetType::Ground) {
-        adv.SetFont(Gorgon::Graphics::NamedFont::BoldScript)
-           .Append(" (Ground)");
-    }
+    adv.SetFont(Gorgon::Graphics::NamedFont::Script)
+        .Append(" (")
+        .Append(damagetype == DamageType::Laser ? "Laser" : (damagetype == DamageType::Explosive ? "Explosive" : "Kinetic"))
+        .Append(")")
+        .UseDefaultColor()
+    ;
     adv.LineBreak();
     
     printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
@@ -341,7 +353,7 @@ void Tower::Print(Gorgon::Graphics::Layer& target, Gorgon::Geometry::Point locat
            .UseBoldFont()
            .Append("\tDamage\t")
            .UseDefaultFont()
-           .Append(damage)
+           .Append((long int)damage)
            .LineBreak()
         ;
         
