@@ -1,5 +1,5 @@
-Cannon Turret II
-8
+Cannon Turret III
+12
 1
 1
 0
@@ -8,17 +8,17 @@ Cannon Turret II
 0.0
 0.3
 0.0
-20
-BulletTowerL3
-4
+40
+
+5
 0
 3
 1
-0.30
+0.40
 0
 (0.5,1.0)
-Base01
-Tower10
+
+Tower14
 Fire01
 Bullet04
 Expo01

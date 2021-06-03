@@ -1,0 +1,25 @@
+Missile Turret
+9
+2
+2
+1
+5
+1
+1.8
+0.0
+0.7
+60
+MissileTowerL2
+6
+0
+2
+4
+0.50
+0.2
+(0.25,0.5) (0.75,0.5)
+Base02
+
+
+Missile01
+Expo05
+1
