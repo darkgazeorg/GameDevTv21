@@ -1,12 +1,12 @@
 Fighter Plane
 4
-5
-15
-5
+3.00
+9
+1
 -5
 0
-1.5
+0.5
+5
 40
-30
 SpyPlane
 SpyPlaneShadow
