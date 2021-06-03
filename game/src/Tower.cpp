@@ -39,6 +39,14 @@ void TowerType::Print(Gorgon::Graphics::Layer &target, Point location, int width
     adv.Append("DPS\t");
     adv.UseDefaultFont();
     adv.Append(DPS());
+    if(this->target == TargetType::Air) {
+        adv.SetFont(Gorgon::Graphics::NamedFont::BoldScript)
+           .Append(" (Air)");
+    }
+    if(this->target == TargetType::Ground) {
+        adv.SetFont(Gorgon::Graphics::NamedFont::BoldScript)
+           .Append(" (Ground)");
+    }
     adv.LineBreak();
     
     printer.AdvancedPrint(target, adv, location + Point(68, 4), width-68, true, false);
@@ -246,9 +254,9 @@ restart:
         
         float dist = bullet.speed * delta / 1000;
         
-        if(dist >= bullet.location.Distance(enemy.GetLocation())) {
+        if(dist >= bullet.location.Distance(enemy.GetLocation() + (IsFlyer(enemy.GetType()) ? Pointf(-0.5f, -1) : Pointf(0, 0)))) {
             bool removed = false;
-            bullet.location = enemy.GetLocation();
+            bullet.location = enemy.GetLocation() + (IsFlyer(enemy.GetType()) ? Pointf(-0.5f, -1) : Pointf(0, 0));
             
             if(base->bulleteffect) {
                 explosions.push_back({bullet.location, -0.75f});
@@ -258,7 +266,7 @@ restart:
                 
                 std::vector<long int> eraselist;
                 for(auto &p : enemies) {
-                    auto dist = p.second.GetLocation().Distance(bullet.location);
+                    auto dist = p.second.GetLocation().Distance(bullet.location) + (IsFlyer(p.second.GetType()) != IsFlyer(enemy.GetType()));
                     if(dist < base->areasize && cantarget(p.second)) {
                         auto damage = (int)std::round(base->damageperbullet * (1 - base->areafalloff * dist / base->areasize));
                         if(p.second.ApplyDamage(damage, base->damagetype)) {
@@ -274,7 +282,7 @@ restart:
                     enemies.erase(ind);
             }
             else {
-                auto dist = bullet.start.Distance(enemy.GetLocation());
+                auto dist = bullet.start.Distance(bullet.location);
                 auto damage = (int)std::round(base->damageperbullet * (1 - base->distancefalloff * dist / base->range));
                 if(enemy.ApplyDamage(damage, base->damagetype)) {
                     scraps += enemy.GetScraps();
@@ -292,7 +300,7 @@ restart:
             }
         }
         else {
-            auto norm = (enemy.GetLocation() - bullet.location).Normalize();
+            auto norm = (enemy.GetLocation() + (IsFlyer(enemy.GetType()) ? Pointf(-0.5f, -1) : Pointf(0, 0)) - bullet.location).Normalize();
             bullet.angle =  (int)std::round(atan2(norm.Y, norm.X)/Gorgon::PI*-16+24) % 32;
             
             bullet.location += norm * dist;
