@@ -9,7 +9,7 @@ Swarm tower
 0.00
 0.00
 70
-Stringers
+Stingers
 6.10
 0
 1
@@ -20,6 +20,6 @@ Stringers
 Base02
 
 
-Rocket04
+Rocket02
 Expo05
-1 
+1

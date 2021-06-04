@@ -195,7 +195,7 @@ public:
     
     void Reset(int seed) {
         RNG = std::default_random_engine(seed);
-        scraps = 40;
+        scraps = 35;
         delete map;
         map = new Map(RNG);
         PrepareNextLevel();
@@ -319,7 +319,18 @@ private:
             if(!wave.Enemies.empty() && delayenemies < delta) {
                 auto &grp = wave.Enemies[0];
                 int &cnt = grp.count;
-                if(IsFlyer(grp.enemy->GetType())) {
+                if(IsFlyer(grp.enemy->GetType()) && grp.inrow == 3 && cnt >= 3) {
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[9]});
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[10]});
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[11]});
+                    cnt-=3;
+                }
+                else if(IsFlyer(grp.enemy->GetType()) && grp.inrow == 2 && cnt >= 2) {
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[10]});
+                    enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[11]});
+                    cnt-=2;
+                }
+                else if(IsFlyer(grp.enemy->GetType())) {
                     enemies.emplace(enemyind++, Enemy{*grp.enemy, 0, map->Paths[9]});
                     cnt--;
                 }
@@ -341,7 +352,7 @@ private:
                     cnt--;
                 }
                 
-                delayenemies = (int)std::round(1000 * grp.enemy->GetSize().Height / 1.8f / grp.enemy->GetSpeed());
+                delayenemies = (int)std::round(1000 * grp.enemy->GetSize().Height / grp.enemy->GetSpeed());
                 
                 if(cnt == 0) {
                     delayenemies += (int)std::round(grp.delay * 1000);

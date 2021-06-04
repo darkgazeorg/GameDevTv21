@@ -15,6 +15,7 @@ R::File resources;
 Gorgon::Containers::Collection<Gorgon::Graphics::Bitmap> tilesets;
 std::vector<std::vector<Gorgon::Graphics::TextureImage>> tiles;
 Gorgon::Graphics::Bitmap upgrade;
+std::array<Gorgon::Graphics::Bitmap, 4> buildings;
 
 bool LoadResources() {
     if(resources.Root().GetCount() != 0)
@@ -171,6 +172,10 @@ bool LoadResources() {
     });
     
     upgrade = resources.Root().Get<R::Folder>(2).Get<R::Image>("Upgrade").MoveOutAsBitmap();
+    buildings[0] = resources.Root().Get<R::Folder>(2).Get<R::Image>("Building01").MoveOutAsBitmap();
+    buildings[1] = resources.Root().Get<R::Folder>(2).Get<R::Image>("Building02").MoveOutAsBitmap();
+    buildings[2] = resources.Root().Get<R::Folder>(2).Get<R::Image>("Building03").MoveOutAsBitmap();
+    buildings[3] = resources.Root().Get<R::Folder>(2).Get<R::Image>("Building04").MoveOutAsBitmap();
     
     return true;
 }

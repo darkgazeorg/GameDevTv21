@@ -148,7 +148,7 @@ int Enemy::Progress(int delta) {
     while(movement > 0) {
         if(locationpoint == path.GetCount()-1) {
             //report point loss
-            return std::min(std::max(1, base->strength/10), 10) + int(log(base->strength));
+            return std::min(std::max(1, base->strength/10), 10) + std::max(0, int(log(base->strength)-1));
         }
         
         auto total = path.GetLine(locationpoint).End.ManhattanDistance(path[locationpoint]);
@@ -221,16 +221,25 @@ Wave::Wave(int ts, std::default_random_engine &random) {
         
         mult += (delay - 2.f) / 20.f;
         
-        if(!IsFlyer(enemy->type) && enemy->GetSize().Width <= 0.51) {
+        int count = int(std::round(((float)gts/(enemy->strength*mult))));
+        if(enemy->GetSize().Width <= 0.51) {
             row = randint(random, 1, 3);
             if(row == 3)
                 mult *= 1.2;
+            
+            if(count > 20 && row == 1)
+                row = randint(random, 1, 3);
+            if(count > 30 && row == 1)
+                row = randint(random, 1, 3);
         }
-        else if(!IsFlyer(enemy->type) && enemy->GetSize().Width <= 1.01) {
+        else if(enemy->GetSize().Width <= 1.01) {
             row = randint(random, 1, 2);
+            
+            if(count > 20 && row == 1)
+                row = randint(random, 1, 2);
         }
         
-        int count = int(std::round(((float)gts/(enemy->strength*mult))));
+        count = int(std::round(((float)gts/(enemy->strength*mult))));
         Enemies.push_back({enemy, count, row, delay});
         tsleft -= enemy->strength*count;
     }

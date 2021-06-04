@@ -18,8 +18,8 @@ Pulsar
 0.00
 (0.5, 0.75)
 Base02
-Tower15
+Tower21
 
-Laser02
+Laser05
 Expo04
 0

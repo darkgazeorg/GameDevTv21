@@ -1,5 +1,5 @@
 Mortar tower III
-16
+15
 2.00
 1
 0
@@ -22,4 +22,4 @@ Tower05
 Fire02
 Fire02
 Expo05
-0 
+0

@@ -9,7 +9,7 @@ Stinger tower
 0.00
 0.00
 125
-
+Carpet
 6.10
 0
 1
@@ -22,4 +22,4 @@ Base02
 
 Rocket04
 Expo05
-1 
+1

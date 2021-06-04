@@ -17,9 +17,9 @@ PulseLaser,Beam
 0.30
 0.00
 (0.5, 0.75)
-Base02
-Tower13
 
-Laser01
+Tower12
+
+Laser02
 Expo04
 0

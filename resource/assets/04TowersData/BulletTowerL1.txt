@@ -9,7 +9,7 @@ Cannon Turret
 0.20
 0.00
 10
-BulletTowerL2,Flak
+BulletTowerL2
 4.00
 1
 3
@@ -17,7 +17,7 @@ BulletTowerL2,Flak
 0.20
 0.00
 (0.5,1.0)
-Base02
+Base01
 Tower25
 Fire01
 Bullet01

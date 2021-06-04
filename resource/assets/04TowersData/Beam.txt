@@ -18,7 +18,7 @@ Beam2
 0.00
 (0.5, 0.75)
 Base04
-Tower16
+Tower22
 
 Laser03
 Expo04

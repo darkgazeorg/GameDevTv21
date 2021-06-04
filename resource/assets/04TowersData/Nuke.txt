@@ -1,5 +1,5 @@
 Nuke tower
-40
+30
 5.00
 1
 0
@@ -18,8 +18,8 @@ Nuke tower
 0.60
 (0.5, 0.75)
 Base01
-Tower05
+
 Fire02
-Fire02
+Nuke
 Expo05
-0
+1

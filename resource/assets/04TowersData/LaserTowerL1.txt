@@ -17,8 +17,8 @@ LaserTowerL2
 0.20
 0.00
 (0.5, 0.75)
-Base04
-Tower13
+
+Tower11
 
 Laser01
 Expo04

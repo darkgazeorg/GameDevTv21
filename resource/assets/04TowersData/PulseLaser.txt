@@ -18,8 +18,8 @@ PulseLaser2
 0.00
 (0.5, 0.75)
 Base04
-Tower15
+Tower20
 
-Laser02
+Laser04
 Expo04
 0

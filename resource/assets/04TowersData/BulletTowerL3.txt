@@ -9,7 +9,7 @@ Cannon Turret III
 0.3
 0.0
 45
-
+Machinegun,Sniper
 4.50
 0
 3
@@ -18,7 +18,7 @@ Cannon Turret III
 0.00
 (0.5,1.0)
 
-Tower17
+Tower14
 Fire01
 Bullet04
 Expo01

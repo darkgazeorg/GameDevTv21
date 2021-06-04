@@ -18,8 +18,8 @@ Deathray
 0.00
 (0.5, 0.75)
 Base02
-Tower16
+Tower24
 
-Laser03
+Laser06
 Expo04
 0

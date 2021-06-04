@@ -116,7 +116,7 @@ Map::Map(std::default_random_engine &random)
             for(int i=1; i<newsol.size(); i++) {
                 len += newsol[i].ManhattanDistance(newsol[i-1]);
             }
-            lengths.push_back({ind, std::abs(len-90) + abs(distance-6)*2});
+            lengths.push_back({ind, std::abs(len-90) + abs(distance-18)*2});
             ind++;
         }
     }
@@ -198,12 +198,23 @@ Map::Map(std::default_random_engine &random)
         pdir = dir;
     }
     
+    if(points.Back().X == points[points.GetCount()-2].X) {
+        Set(points.Back().X-1, points.Back().Y, (TileIndex)(int(TileIndex::Building1)+std::uniform_int_distribution<int>(0, 3)(random)));
+        Set(points.Back().X, points.Back().Y, (TileIndex)(int(TileIndex::Building1)+std::uniform_int_distribution<int>(0, 3)(random)));
+        Set(points.Back().X+1, points.Back().Y, (TileIndex)(int(TileIndex::Building1)+std::uniform_int_distribution<int>(0, 3)(random)));
+    }
+    else {
+        Set(points.Back().X, points.Back().Y-1, (TileIndex)(int(TileIndex::Building1)+std::uniform_int_distribution<int>(0, 3)(random)));
+        Set(points.Back().X, points.Back().Y, (TileIndex)(int(TileIndex::Building1)+std::uniform_int_distribution<int>(0, 3)(random)));
+        Set(points.Back().X, points.Back().Y+1, (TileIndex)(int(TileIndex::Building1)+std::uniform_int_distribution<int>(0, 3)(random)));
+    }
+    
     int total = 0;
     for(int i=0; i<mapsize.Area(); i++) {
         total += map[i] != 0;
     }
     
-    std::cout << "Path area: " << total << std::endl;
+    //std::cout << "Path area: " << total << std::endl;
     
     //create paths
     
@@ -291,14 +302,20 @@ Map::Map(std::default_random_engine &random)
         }
     }
     
-    curves.push_back({});
     Pointf avg = {0, 0};
     for(int i=0; i<curves[0].GetCount(); i++) {
         avg += curves[0][i].P0;
     }
     avg /= curves[0].GetCount();
+    curves.push_back({});
     curves.back().SetStartingPoint(curves[5][0].P0);
     curves.back().Push(avg, curves[5][curves[0].GetCount()-1].P3);
+    curves.push_back({});
+    curves.back().SetStartingPoint(curves[0][0].P0);
+    curves.back().Push(avg-(curves[0][curves[0].GetCount()-1].P3 - curves[0][0].P0).Normalize().Perpendicular()*3, curves[0][curves[0].GetCount()-1].P3);
+    curves.push_back({});
+    curves.back().SetStartingPoint(curves[8][0].P0);
+    curves.back().Push(avg+(curves[0][curves[0].GetCount()-1].P3 - curves[0][0].P0).Normalize().Perpendicular()*3, curves[8][curves[0].GetCount()-1].P3);
     
     //flatten
     Paths.Destroy();
@@ -326,7 +343,13 @@ void Map::Render(Gorgon::Graphics::Layer &target) {
     offset = Point((target.GetTargetSize() - (tilesize * mapsize))/2);
     for(int y=0; y<mapsize.Height; y++) {
         for(int x=0; x<mapsize.Width; x++) {
-            tileset[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
+            if((*this)(x, y) >= (int)TileIndex::Building1) {
+                tileset[0].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
+                buildings[(*this)(x, y) - (int)TileIndex::Building1].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
+            }
+            else {
+                tileset[(*this)(x, y)].DrawStretched(target, Point(x*tilesize.Width, y*tilesize.Height)+offset, tilesize);
+            }
         }
     }
     //debug.Draw(target, offset);

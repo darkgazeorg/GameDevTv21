@@ -5,7 +5,7 @@ Missile Turret II
 1
 5.50
 1
-1.40
+1.25
 0.00
 0.70
 70
@@ -20,6 +20,6 @@ Missile Turret II
 Base02
 
 
-Missile01
+Missile02
 Expo05
 1
