@@ -15,13 +15,16 @@
 #include "Tower.h"
 #include "Enemy.h"
 
+#include <Gorgon/UI/Dialog.h>
+
 extern R::File resources;
 
 #define rint(min, max)    std::uniform_int_distribution<int>(min, max)(RNG)
 
 class Game : public Gorgon::Scene {
+    friend class EndGame;
 public:
-    Game(Gorgon::SceneManager &parent, Gorgon::SceneID id, int seed) : 
+    Game(Gorgon::SceneManager &parent, Gorgon::SceneID id) : 
         Gorgon::Scene(parent, id, true),
         topleftpnl(Widgets::Registry::Panel_Blank),
         towerslayer(Widgets::Registry::Layerbox_Blank),
@@ -30,12 +33,15 @@ public:
         towerspnl(Widgets::Registry::Panel_Blank),
         enemiespnl(Widgets::Registry::Panel_Blank)
     {
+        inst = this;
         graphics.Add(maplayer);
         maplayer.Move(Widgets::Registry::Active()[Widgets::Registry::Panel_Left].GetHeight(), Widgets::Registry::Active()[Widgets::Registry::Panel_Top].GetHeight());
         maplayer.EnableClipping();
-        quit.Text = "Quit";
+        quit.Text = "Give up";
         quit.ClickEvent.Register([this]() {
-            this->parent->Quit();
+            Gorgon::UI::AskYesNo("Exit", "There is no save functionality, are you certain?", [this] {
+                End();
+            });
         });
         ui.Add(quit);
         quit.Move(ui.GetWidth() - quit.GetWidth() - ui.GetSpacing(), ui.GetSpacing());
@@ -79,42 +85,7 @@ public:
         towerslayer.GetLayer().Add(towersinput);
         
         towersinput.SetClick([this] (Point location){
-            if(seltower != -1) {
-                if(towers[seltower].UnderConstruction())
-                    return;
-                
-                for(auto l : towerlisting) {
-                    if(l.first > location.Y) {
-                        if(TowerType::Towers[l.second].GetCost() <= scraps) {
-                            auto pos = towers[seltower].GetLocation();
-                            
-                            towers.erase(towers.begin() + seltower);
-                            towers.push_back(Tower(TowerType::Towers[l.second], pos, !levelinprogress));
-                            scraps -= TowerType::Towers[l.second].GetCost();
-                            seltower = towers.size() - 1;
-                            
-                            break;
-                        }
-                    }
-                }
-            }
-            else {
-                for(auto l : towerlisting) {
-                    if(l.first > location.Y) {
-                        if(TowerType::Towers[l.second].GetCost() <= scraps) {
-                            if(buildtower == l.second)
-                                buildtower = "";
-                            else {
-                                buildtower = l.second;
-                            }
-                        }
-                        else
-                            buildtower = "";
-                        
-                        break;
-                    }
-                }
-            }
+            towerclick(location.Y);
         });
         
         maplayerbox.GetLayer().Add(mapinput);
@@ -183,33 +154,88 @@ public:
         graphics.Add(gamelayer);
         gamelayer.Move(maplayer.GetLocation());
         gamelayer.EnableClipping();
-        
-        if(seed == -1)
-            seed = Gorgon::PositiveMod(static_cast<int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()), 32000);
-        std::cout << "Seed: " << seed << std::endl;
-        Reset(seed);
     }
     
     ~Game() {
     }
     
     void Reset(int seed) {
+        if(seed == -1)
+            seed = Gorgon::PositiveMod(static_cast<int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()), 32000);
+        
         RNG = std::default_random_engine(seed);
+        
         scraps = 35;
         delete map;
         map = new Map(RNG);
-        PrepareNextLevel();
+        towers.clear();
+        enemies.clear();
+        towerlisting.clear();
+        seltower = -1;
+        level = 1;
+        levelinprogress = false;
+        curstr = 67;
+        health = 100;
+        maphover = {-1, -1};
         enemyind = 0;
-        auto t = TowerType::Towers.begin();
-        std::advance(t, 2);
         gamespeed = 1;
         paused = false;
         scrapsinlevel = 0;
         buildtower = "";
+        totaldamage = 0;
+        totalkills  = 0;
+        
+        this->seed = seed;
+        
+        PrepareNextLevel();
+    }
+    
+    void towerclick(int location) {
+        if(seltower != -1) {
+            if(towers[seltower].UnderConstruction())
+                return;
+            
+            for(auto l : towerlisting) {
+                if(l.first >= location) {
+                    if(TowerType::Towers[l.second].GetCost() <= scraps) {
+                        auto pos = towers[seltower].GetLocation();
+                        
+                        auto damage = towers[seltower].damage;
+                        auto kills  = towers[seltower].kills;
+                        towers.erase(towers.begin() + seltower);
+                        towers.push_back(Tower(TowerType::Towers[l.second], pos, !levelinprogress));
+                        scraps -= TowerType::Towers[l.second].GetCost();
+                        seltower = towers.size() - 1;
+                        towers.back().damage = damage;
+                        towers.back().kills  = kills;
+                        
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            for(auto l : towerlisting) {
+                if(l.first >= location) {
+                    if(TowerType::Towers[l.second].GetCost() <= scraps) {
+                        if(buildtower == l.second)
+                            buildtower = "";
+                        else {
+                            buildtower = l.second;
+                        }
+                    }
+                    else
+                        buildtower = "";
+                    
+                    break;
+                }
+            }
+        }
     }
     
     void PrepareNextLevel() {
         scraps += scrapsinlevel;
+        totalscraps += scrapsinlevel;
         scrapsinlevel = 0;
         curstr *= 1.5;
         wave = Wave(curstr, RNG);
@@ -225,6 +251,23 @@ public:
         paused = false;
         nextwave.Disable();
     }
+    
+    static Game &Get() {
+        return *inst;
+    }
+    
+    int GetSeed() const {
+        return seed;
+    }
+    
+    void End() {
+        for(auto &tower : towers) {
+            totaldamage += tower.damage;
+            totalkills  += tower.kills;
+        }
+        
+        parent->SwitchScene(EndGameScene);
+    }
 
 private:
     virtual void activate() override {
@@ -235,7 +278,6 @@ private:
         
         quit.Move(ui.GetWidth() - quit.GetWidth() - ui.GetSpacing(), ui.GetSpacing());
         
-        drawtowers();
     }
     
     void drawtowers() {
@@ -309,8 +351,10 @@ private:
                     enemiestodel.push_back(p.first);
                 }
                 
-                if(health <= 0)
-                    parent->Quit(); //for now
+                if(health <= 0) {
+                    End();
+                    return;
+                }
             }
             
             for(auto ind : enemiestodel)
@@ -376,7 +420,7 @@ private:
 
     virtual void render() override {
         maplayer.Clear();
-        maplayer.Draw(Color::Black);
+        resources.Root().Get<R::Folder>(2).Get<R::Image>("black").DrawIn(maplayer);
         map->Render(maplayer);
         
         Size tilesize = {48, 48};
@@ -459,7 +503,11 @@ private:
                 break;
                 
             case Keycode::Space:
-                paused = !paused;
+                if(levelinprogress)
+                    paused = !paused;
+                else
+                    StartNextLevel();
+                
                 break;
                 
             case Keycode::Escape:
@@ -474,6 +522,49 @@ private:
                     
                     scraps -= TowerType::Towers[buildtower].GetCost();
                     buildtower = "";
+                }
+                break;
+                
+            case Keycode::Number_1:
+            case Keycode::Numpad_1:
+                if(towerlisting.size() > 0) {
+                    towerclick(towerlisting.begin()->first);
+                }
+                break;
+
+            case Keycode::Number_2:
+            case Keycode::Numpad_2:
+                if(towerlisting.size() > 1) {
+                    auto it = towerlisting.begin();
+                    std::advance(it, 1);
+                    towerclick(it->first);
+                }
+                break;
+
+            case Keycode::Number_3:
+            case Keycode::Numpad_3:
+                if(towerlisting.size() > 2) {
+                    auto it = towerlisting.begin();
+                    std::advance(it, 2);
+                    towerclick(it->first);
+                }
+                break;
+
+            case Keycode::Number_4:
+            case Keycode::Numpad_4:
+                if(towerlisting.size() > 3) {
+                    auto it = towerlisting.begin();
+                    std::advance(it, 3);
+                    towerclick(it->first);
+                }
+                break;
+
+            case Keycode::Number_5:
+            case Keycode::Numpad_5:
+                if(towerlisting.size() > 4) {
+                    auto it = towerlisting.begin();
+                    std::advance(it, 4);
+                    towerclick(it->first);
                 }
                 break;
 
@@ -519,4 +610,10 @@ private:
     std::map<int, std::string> towerlisting;
     long int enemyind;
     std::vector<Tower> towers;
+    int seed;
+    double totaldamage;
+    int totalkills;
+    long long int totalscraps;
+    
+    static Game *inst;
 };

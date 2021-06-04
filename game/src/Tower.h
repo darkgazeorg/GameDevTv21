@@ -80,6 +80,7 @@ public:
 };
 
 class Tower {
+    friend class Game;
 public:
     Tower(const TowerType &base, Point location, bool instant) : 
         base(&base),

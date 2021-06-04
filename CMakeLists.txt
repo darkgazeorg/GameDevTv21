@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(PNAME "game_jam_2021")
+set(PNAME "DotP")
 project(${PNAME})
 
 include(ExternalProject)

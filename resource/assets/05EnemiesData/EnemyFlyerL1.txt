@@ -1,7 +1,7 @@
 Fighter Plane
 6
 2.48
-6
+7
 1
 -2
 0

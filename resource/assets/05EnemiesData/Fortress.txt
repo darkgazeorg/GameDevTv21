@@ -1,7 +1,7 @@
 Flying fortress
 6
 1.50
-45
+48
 7
 3
 5

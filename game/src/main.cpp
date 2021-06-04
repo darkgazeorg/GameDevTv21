@@ -6,23 +6,28 @@
 #include <ctime>
 
 #include "Types.h"
+#include "MainMenu.h"
+#include "HowTo.h"
+#include "Credits.h"
+#include "EndGame.h"
 
 std::default_random_engine RNG;
+Game *Game::inst;
 
 int main(int argc, char *argv[]) {
     Gorgon::Initialize("GDTD");
     
     Gorgon::SceneManager scenemanager(Gorgon::SceneManager::Fullscreen, "GDTD");
     Gorgon::UI::Initialize();
+
     
-    int seed = -1;
+    scenemanager.NewScene<MainMenu>(MenuScene);
+    scenemanager.NewScene<Game>(GameScene);
+    scenemanager.NewScene<HowTo>(HowToScene);
+    scenemanager.NewScene<Credits>(CreditsScene);
+    scenemanager.NewScene<EndGame>(EndGameScene);
     
-    if(argc > 1) {
-        seed = atoi(argv[1]);
-    }
-    
-    scenemanager.NewScene<Game>(GameScene, seed);
-    scenemanager.SwitchScene(GameScene);
+    scenemanager.SwitchScene(MenuScene);
     
     scenemanager.Run();
 
