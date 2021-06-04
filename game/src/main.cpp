@@ -14,7 +14,12 @@
 std::default_random_engine RNG;
 Game *Game::inst;
 
-int main(int argc, char *argv[]) {
+#ifdef WIN32
+int __stdcall WinMain(void* hInstance, void* hPrevInstance, char* pCmdLine, int nCmdShow)
+#else
+int main(int argc, char *argv[])
+#endif
+{
     Gorgon::Initialize("GDTD");
     
     Gorgon::SceneManager scenemanager(Gorgon::SceneManager::Fullscreen, "GDTD");

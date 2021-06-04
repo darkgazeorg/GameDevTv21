@@ -29,7 +29,7 @@ set(SOURCES
   src/Enemy.cpp
 )
 
-add_executable(${PNAME} ${SOURCES})
+add_executable(${PNAME} WIN32 ${SOURCES})
 add_custom_command(TARGET ${PNAME}
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PNAME}> ${RUNTIME_DIR})
