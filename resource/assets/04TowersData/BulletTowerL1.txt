@@ -17,8 +17,8 @@ BulletTowerL2,Flak
 0.20
 0.00
 (0.5,1.0)
-Base01
-Tower09
+Base02
+Tower25
 Fire01
 Bullet01
 Expo01
